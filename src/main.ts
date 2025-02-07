@@ -3,8 +3,8 @@ import { AppModule } from './app.module';
 import { JwtAuthGuard } from './auth/guards/jwt.guard';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ExpressAdapter } from '@nestjs/platform-express';
-import * as express from 'express';
-import * as serverless from 'serverless-http';
+import express from 'express'; // Correct import
+import serverless from 'serverless-http'; // Correct import
 
 // Create an Express instance
 const expressApp = express();
