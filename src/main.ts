@@ -14,7 +14,8 @@ async function bootstrap() {
   // Enable JWT Auth Guard globally
   app.useGlobalGuards(new JwtAuthGuard());
 
-  app.enableCors()
+  app.enableCors();
+
   // Swagger Configuration
   const config = new DocumentBuilder()
     .setTitle('AgriSense')
@@ -23,7 +24,7 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config, {
-    deepScanRoutes: true
+    deepScanRoutes: true,
   });
   SwaggerModule.setup('api/docs', app, document);
 
@@ -32,7 +33,7 @@ async function bootstrap() {
 
 bootstrap();
 
-// Export Vercel handler
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  server(req, res);
-}
+// ✅ Correct way to export the Vercel handler
+export default (req: VercelRequest, res: VercelResponse) => {
+  server(req, res); // Express handles the request
+};
