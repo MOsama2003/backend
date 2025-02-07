@@ -1,6 +1,6 @@
 import { ExecutionContext } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { CONSTANTS } from 'src/constants';
+import { CONSTANTS } from '../../constants';
 
 export class JwtAuthGuard extends AuthGuard('jwt') {
   canActivate(context: ExecutionContext) {

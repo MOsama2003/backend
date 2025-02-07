@@ -4,8 +4,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { ILike, Repository } from 'typeorm';
-import { CONSTANTS } from 'src/constants';
-import { MailService } from 'src/mail/mail.service';
+import { CONSTANTS } from '../constants';
+import { MailService } from '../mail/mail.service';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
 
 @Injectable()

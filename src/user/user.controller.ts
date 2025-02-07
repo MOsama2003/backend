@@ -11,8 +11,8 @@ import {
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { RoleGuard } from 'src/auth/guards/role.guard';
-import { CONSTANTS } from 'src/constants';
+import { RoleGuard } from '../auth/guards/role.guard';
+import { CONSTANTS } from '../constants';
 import {
   ApiTags,
   ApiOperation,
