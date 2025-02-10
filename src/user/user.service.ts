@@ -113,4 +113,13 @@ export class UserService {
     return this.userRepository.findOne({where: {id:id}});
   }
 
+  async setAvatar(userId: number, avatarUrl: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    user.avatar = avatarUrl;  // Save the avatar URL
+    return this.userRepository.save(user);  // Save user with updated avatar
+  }
+
 }

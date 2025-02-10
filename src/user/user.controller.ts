@@ -8,6 +8,10 @@ import {
   Query,
   Patch,
   Param,
+  UploadedFile,
+  UseInterceptors,
+  Req,
+  BadRequestException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -21,12 +25,17 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('User')
 @ApiBearerAuth()
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   @Post('/register')
   @UseGuards(new RoleGuard(CONSTANTS.ROLE.ADMIN))
@@ -83,5 +92,28 @@ export class UserController {
   })
   async disableUser(@Param('id') id: string) {
     return this.userService.softDeleteUser(id);
+  }
+
+  @Post('/avatar')
+  @UseInterceptors(FileInterceptor('avatar')) // Handle file upload with 'avatar' field
+  @ApiOperation({ summary: 'Set user avatar' })
+  @ApiResponse({ status: 200, description: 'Avatar successfully uploaded' })
+  @ApiResponse({ status: 400, description: 'Invalid file' })
+  async setAvatar(@UploadedFile() file: Express.Multer.File, @Req() req) {
+    if (!file) {
+      throw new BadRequestException('No file provided');
+    }
+
+    try {
+      const uploadedFile = await this.cloudinaryService.uploadFile(file); // Upload file to Cloudinary
+      if (!uploadedFile) {
+        throw new BadRequestException('File upload failed');
+      }
+
+      await this.userService.setAvatar(req.user.id, uploadedFile.url); // Save the URL to the user's record
+      return { message: 'Avatar successfully uploaded', avatarUrl: uploadedFile.url };
+    } catch (error) {
+      throw new BadRequestException('Error uploading file to Cloudinary');
+    }
   }
 }

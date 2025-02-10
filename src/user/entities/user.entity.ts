@@ -1,5 +1,7 @@
 import { IsNotEmpty, MinLength, IsEmail } from 'class-validator';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { DeviceLocDetails } from 'src/deviceLocDetails/entities/deviceLocDetails.entity';
+import { SensorData } from 'src/sensorData/entities/sensorData.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class User {
@@ -40,4 +42,10 @@ export class User {
 
   @Column({ default: false })  
   disabled: boolean;
+
+  @OneToMany(() => DeviceLocDetails, (deviceLoc) => deviceLoc.user)
+  deviceLocations: DeviceLocDetails[];
+
+  @OneToMany(() => SensorData, (sensorData) => sensorData.user)
+  sensorData: SensorData[];
 }
