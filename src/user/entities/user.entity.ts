@@ -1,7 +1,7 @@
 import { IsNotEmpty, MinLength, IsEmail } from 'class-validator';
 import { DeviceLocDetails } from 'src/deviceLocDetails/entities/deviceLocDetails.entity';
 import { SensorData } from 'src/sensorData/entities/sensorData.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class User {
@@ -33,7 +33,7 @@ export class User {
   @Column({ nullable: true })  
   role: string;
 
-  @Column()
+  @Column({ unique: true })  // Ensure deviceId is unique
   @IsNotEmpty()
   deviceId: string;
 
@@ -43,8 +43,8 @@ export class User {
   @Column({ default: false })  
   disabled: boolean;
 
-  @OneToMany(() => DeviceLocDetails, (deviceLoc) => deviceLoc.user)
-  deviceLocations: DeviceLocDetails[];
+  @OneToOne(() => DeviceLocDetails, (deviceLoc) => deviceLoc.user, { cascade: true })
+  deviceLocation: DeviceLocDetails;
 
   @OneToMany(() => SensorData, (sensorData) => sensorData.user)
   sensorData: SensorData[];
