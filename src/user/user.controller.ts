@@ -95,7 +95,7 @@ export class UserController {
   }
 
   @Post('/avatar')
-  @UseInterceptors(FileInterceptor('avatar')) // Handle file upload with 'avatar' field
+  @UseInterceptors(FileInterceptor('avatar'))
   @ApiOperation({ summary: 'Set user avatar' })
   @ApiResponse({ status: 200, description: 'Avatar successfully uploaded' })
   @ApiResponse({ status: 400, description: 'Invalid file' })

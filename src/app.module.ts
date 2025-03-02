@@ -3,14 +3,15 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
-import { MailModule } from './mail/mail.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { SensorDataModule } from './sensorData/sensorData.module';
+import { DeviceLocDetailsModule } from './deviceLocDetails/deviceLocDetails.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env'], // Load environment variables from .env file
+      envFilePath: ['.env'], 
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -18,7 +19,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
         url: configService.get<string>('DATABASE_URL'),
-        ssl: { rejectUnauthorized: false }, // Required for Neon DB
+        ssl: { rejectUnauthorized: false }, 
         autoLoadEntities: true,
         synchronize: true,
         logging: true,
@@ -27,7 +28,9 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
     }),
     UserModule,
     AuthModule,
-    CloudinaryModule
+    CloudinaryModule,
+    SensorDataModule,
+    DeviceLocDetailsModule
   ],
   controllers: [],
   providers: [],

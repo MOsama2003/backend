@@ -1,5 +1,4 @@
-import { User } from 'src/user/entities/user.entity';
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class SensorData {
@@ -9,30 +8,30 @@ export class SensorData {
   @Column()
   deviceId: string;
 
-  @Column()
-  Nitrogen: string;
+  @Column({ type: 'float' })
+  nitrogen: number;
+
+  @Column({ type: 'float' })
+  potassium: number;
+
+  @Column({ type: 'float' })
+  phosphorus: number;
+
+  @Column({ type: 'float' })
+  conductivity: number;
+
+  @Column({ type: 'float' })
+  pH: number;
+
+  @Column({ type: 'float' })
+  humidity: number;
+
+  @Column({ type: 'float' })
+  temperature: number;
 
   @Column()
-  Potassium: string;
-
-  @Column()
-  Phosphorous: string;
-
-  @Column()
-  Conductivity: string;
-
-  @Column()
-  pH: string;
-
-  @Column()
-  Humidity: string;
-
-  @Column()
-  Temperature: string;
+  userId: number;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
-
-  @ManyToOne(() => User, (user) => user.sensorData, { onDelete: 'CASCADE' })
-  user: User;
 }

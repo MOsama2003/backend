@@ -122,4 +122,8 @@ export class UserService {
     return this.userRepository.save(user);  // Save user with updated avatar
   }
 
+  findByDeviceId(id : string){
+    return this.userRepository.findOne({where: {deviceId:id}});
+  }
+
 }

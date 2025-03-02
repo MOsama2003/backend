@@ -3,5 +3,5 @@ export const CONSTANTS = {
         ADMIN: "admin",
         FARMER: "farmer",
     },
-    BY_PASS_ROLE: ['/auth/login']
+    BY_PASS_ROLE: ['/auth/login','/sensor-data','/sensor-location-data']
 }
