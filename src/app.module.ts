@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { SensorDataModule } from './sensorData/sensorData.module';
 import { DeviceLocDetailsModule } from './deviceLocDetails/deviceLocDetails.module';
+import { RequestedCounsellarModule } from './requested-counsellar/requested-counsellar.module';
 
 @Module({
   imports: [
@@ -30,7 +31,8 @@ import { DeviceLocDetailsModule } from './deviceLocDetails/deviceLocDetails.modu
     AuthModule,
     CloudinaryModule,
     SensorDataModule,
-    DeviceLocDetailsModule
+    DeviceLocDetailsModule,
+    RequestedCounsellarModule
   ],
   controllers: [],
   providers: [],

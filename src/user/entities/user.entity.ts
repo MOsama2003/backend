@@ -31,8 +31,7 @@ export class User {
   @Column({ nullable: true })  
   role: string;
 
-  @Column({ unique: true })
-  @IsNotEmpty()
+  @Column({ unique: true, nullable: true })
   deviceId: string;
 
   @Column({ nullable: true })  

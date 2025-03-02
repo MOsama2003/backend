@@ -9,10 +9,14 @@ import { UserService } from '../user/user.service';
 import { LocalStrategy } from './strategy/local.strategy';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { MailService } from '../mail/mail.service';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { RequestedCounsellarService } from 'src/requested-counsellar/requested-counsellar.service';
+import { RequestedCounsellar } from 'src/requested-counsellar/entities/requested-counsellar.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([RequestedCounsellar]),
     PassportModule,
     JwtModule.register({
       secret: 'ACCESS-TOKEN',
@@ -20,6 +24,6 @@ import { MailService } from '../mail/mail.service';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, UserService, LocalStrategy, JwtStrategy, MailService],
+  providers: [AuthService, UserService, LocalStrategy, JwtStrategy, MailService, CloudinaryService, RequestedCounsellarService],
 })
 export class AuthModule {}

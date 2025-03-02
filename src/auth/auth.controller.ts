@@ -48,6 +48,7 @@ export class AuthController {
     return {
       access_token: accessToken,
       refresh_token: refreshToken,
+      user
     };
   }
 }

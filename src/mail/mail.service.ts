@@ -13,7 +13,7 @@ export class MailService {
         pass: 'bead cmts rczm hnvf',
       },
       tls: {
-        rejectUnauthorized: false, 
+        rejectUnauthorized: false,
       },
     });
   }
@@ -22,7 +22,8 @@ export class MailService {
     const mailOptions = {
       from: 'mo354598@gmail.com',
       to,
-      subject: '🌿 Welcome to AgriSense – Empowering Farmers with Smart Technology!',
+      subject:
+        '🌿 Welcome to AgriSense – Empowering Farmers with Smart Technology!',
       html: `
         <div style="background-color: #f4f4f4; padding: 20px; font-family: Arial, sans-serif; color: #333;">
           <div style="max-width: 600px; background-color: #ffffff; margin: auto; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
@@ -62,6 +63,72 @@ export class MailService {
               © 2024 AgriSense Inc. All rights reserved.
             </p>
           </div>
+        </div>
+      `,
+    };
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+    } catch (error) {
+      console.error(`❌ Error sending email:`, error);
+    }
+  }
+
+  async sendMailToRequestedCounsellar(to: string, firstName: string) {
+    const mailOptions = {
+      from: 'mo354598@gmail.com',
+      to,
+      subject:
+        '🌿 Welcome to AgriSense – Empowering Farmers with Smart Technology!',
+      html: `
+        <div style="background-color: #f4f4f4; padding: 20px; font-family: Arial, sans-serif; color: #333;">
+          ${firstName} your request for becoming a part of AgriSense as Counsellar is submitted, you will be informed once decision will be taken regarding you
+        </div>
+      `,
+    };
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+    } catch (error) {
+      console.error(`❌ Error sending email:`, error);
+    }
+  }
+
+  async sendRejectionMailToRequestedCounsellar(to: string, firstName: string) {
+    const mailOptions = {
+      from: 'mo354598@gmail.com',
+      to,
+      subject:
+        '🌿 Welcome to AgriSense – Empowering Farmers with Smart Technology!',
+      html: `
+        <div style="background-color: #f4f4f4; padding: 20px; font-family: Arial, sans-serif; color: #333;">
+          unfortunately ${firstName}, your request to become Counsellar is not accepted!
+        </div>
+      `,
+    };
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+    } catch (error) {
+      console.error(`❌ Error sending email:`, error);
+    }
+  }
+
+  async sendCredentialsMailToRequestedCounsellar(
+    to: string,
+    firstName: string,
+    email: string,
+    password: string,
+  ) {
+    const mailOptions = {
+      from: 'mo354598@gmail.com',
+      to,
+      subject:
+        '🌿 Welcome to AgriSense – Empowering Farmers with Smart Technology!',
+      html: `
+        <div style="background-color: #f4f4f4; padding: 20px; font-family: Arial, sans-serif; color: #333;">
+         Congratulations ${firstName}! 
+         your request to become Counsellar is accepted your credentials are email: ${email} and password: ${password}
         </div>
       `,
     };
