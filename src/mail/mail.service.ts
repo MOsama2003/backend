@@ -139,4 +139,27 @@ export class MailService {
       console.error(`❌ Error sending email:`, error);
     }
   }
+
+  async sendOTP(
+    to: string,
+    otp: string
+  ) {
+    const mailOptions = {
+      from: 'mo354598@gmail.com',
+      to,
+      subject:
+        '🌿 Welcome to AgriSense – Empowering Farmers with Smart Technology!',
+      html: `
+        <div style="background-color: #f4f4f4; padding: 20px; font-family: Arial, sans-serif; color: #333;">
+        your otp is ${otp} 
+        </div>
+      `,
+    };
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+    } catch (error) {
+      console.error(`❌ Error sending email:`, error);
+    }
+  }
 }

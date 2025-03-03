@@ -7,6 +7,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { SensorDataModule } from './sensorData/sensorData.module';
 import { DeviceLocDetailsModule } from './deviceLocDetails/deviceLocDetails.module';
 import { RequestedCounsellarModule } from './requested-counsellar/requested-counsellar.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -32,7 +33,8 @@ import { RequestedCounsellarModule } from './requested-counsellar/requested-coun
     CloudinaryModule,
     SensorDataModule,
     DeviceLocDetailsModule,
-    RequestedCounsellarModule
+    RequestedCounsellarModule,
+    RedisModule
   ],
   controllers: [],
   providers: [],
