@@ -122,7 +122,7 @@ export class UserService {
   }
 
   findById(id: number) {
-    return this.userRepository.findOne({ where: { id: id } });
+    return this.userRepository.findOne({ where: { id: id }, select: ['avatar','firstName', 'id', 'email', 'role'] });
   }
 
   async setAvatar(userId: string | number, file: Express.Multer.File) {

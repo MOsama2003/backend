@@ -120,7 +120,6 @@ export class RequestedCounsellarService {
         ? [
             { email: ILike(`%${search}%`) },
             { firstName: ILike(`%${search}%`) },
-            { deviceId: ILike(`%${search}%`) },
           ]
         : [];
 

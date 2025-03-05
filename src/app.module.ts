@@ -8,6 +8,7 @@ import { SensorDataModule } from './sensorData/sensorData.module';
 import { DeviceLocDetailsModule } from './deviceLocDetails/deviceLocDetails.module';
 import { RequestedCounsellarModule } from './requested-counsellar/requested-counsellar.module';
 import { RedisModule } from './redis/redis.module';
+import { BlogModule } from './blog/blog.module';
 
 @Module({
   imports: [
@@ -34,7 +35,8 @@ import { RedisModule } from './redis/redis.module';
     SensorDataModule,
     DeviceLocDetailsModule,
     RequestedCounsellarModule,
-    RedisModule
+    RedisModule,
+    BlogModule
   ],
   controllers: [],
   providers: [],

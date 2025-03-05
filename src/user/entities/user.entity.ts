@@ -1,5 +1,6 @@
 import { IsNotEmpty, MinLength, IsEmail } from 'class-validator';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Blog } from 'src/blog/entities/blog.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class User {
@@ -39,4 +40,7 @@ export class User {
 
   @Column({ default: false })  
   disabled: boolean;
+
+  @OneToMany(() => Blog, (article) => article.user, { cascade: true })
+  blog: Blog[];
 }
