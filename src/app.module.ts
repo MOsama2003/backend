@@ -9,6 +9,7 @@ import { DeviceLocDetailsModule } from './deviceLocDetails/deviceLocDetails.modu
 import { RequestedCounsellarModule } from './requested-counsellar/requested-counsellar.module';
 import { RedisModule } from './redis/redis.module';
 import { BlogModule } from './blog/blog.module';
+import { FeedModule } from './feed/feed.module';
 
 @Module({
   imports: [
@@ -36,7 +37,8 @@ import { BlogModule } from './blog/blog.module';
     DeviceLocDetailsModule,
     RequestedCounsellarModule,
     RedisModule,
-    BlogModule
+    BlogModule,
+    FeedModule
   ],
   controllers: [],
   providers: [],

@@ -1,5 +1,7 @@
 import { IsNotEmpty, MinLength, IsEmail } from 'class-validator';
 import { Blog } from 'src/blog/entities/blog.entity';
+import { Feed } from 'src/feed/entities/feed.entity';
+import { Reaction } from 'src/feed/entities/reaction.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
@@ -43,4 +45,10 @@ export class User {
 
   @OneToMany(() => Blog, (article) => article.user, { cascade: true })
   blog: Blog[];
+
+  @OneToMany(() => Feed, (feed) => feed.publisher, { cascade: true })
+  feed: Feed[];
+
+  @OneToMany(() => Reaction, (reaction) => reaction.user)
+  reactions: Reaction[];
 }

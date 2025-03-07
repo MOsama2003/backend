@@ -73,6 +73,7 @@ export class BlogService {
         where: searchFilters.length ? searchFilters : undefined,
         skip,
         take,
+        relations: ['user'],
         select: [
           'id',
           'articleTitle',

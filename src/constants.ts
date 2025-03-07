@@ -8,3 +8,10 @@ export const CONSTANTS = {
         '/auth/forgot-password', '/auth/verify-otp', '/auth/reset-password'
     ]
 }
+
+export enum PostReaction {
+    Upvote = "Upvote",
+    Devote = "Devote",
+    NoReaction = "NoReaction",
+  }
+  
