@@ -3,19 +3,16 @@ import { AppModule } from './app.module';
 import { JwtAuthGuard } from './auth/guards/jwt.guard';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ExpressAdapter } from '@nestjs/platform-express';
-import express from 'express'; // ✅ Ensure correct import
+import express from 'express'; 
 
 async function bootstrap() {
-  const server = express(); // ✅ Use correct syntax
+  const server = express();
   const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
 
-  // Enable JWT Auth Guard globally
   app.useGlobalGuards(new JwtAuthGuard());
 
-  // Enable CORS
   app.enableCors();
 
-  // Swagger Configuration
   const config = new DocumentBuilder()
     .setTitle('AgriSense')
     .setVersion('1.0')
