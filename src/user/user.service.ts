@@ -46,7 +46,7 @@ export class UserService {
         createdAt: String(new Date().toISOString()),
       });
 
-      this.mailService
+      await this.mailService
         .sendWelcomeEmail(newUser.email, newUser.firstName)
         .catch((err) =>
           console.error(`Error sending welcome email: ${err.message}`),
@@ -168,7 +168,7 @@ export class UserService {
       createdAt: String(new Date().toISOString()),
     });
 
-    this.mailService
+    await this.mailService
       .sendCredentialsMailToRequestedCounsellar(
         newUser.email,
         newUser.firstName,
@@ -204,7 +204,7 @@ export class UserService {
       createdAt: String(new Date().toISOString()),
     });
 
-    this.mailService
+    await this.mailService
       .sendWelcomeEmail(newUser.email, newUser.firstName)
       .catch((err) =>
         console.error(`Error sending welcome email: ${err.message}`),

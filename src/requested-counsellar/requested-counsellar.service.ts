@@ -50,7 +50,7 @@ export class RequestedCounsellarService {
 
       await this.requestedCounsellarRepository.save(newUser);
 
-      this.mailService
+      await this.mailService
         .sendMailToRequestedCounsellar(newUser.email, newUser.firstName)
         .catch((err) =>
           console.error(`Error sending welcome email: ${err.message}`),
@@ -76,7 +76,7 @@ export class RequestedCounsellarService {
       throw new BadRequestException(`Failed to delete RequestedCounsellar with ID ${id}.`);
     }
     if (user.email) {
-      this.mailService
+      await this.mailService
         .sendRejectionMailToRequestedCounsellar(user.email, user.firstName)
         .catch((err) =>
           console.error(`Error sending rejection email: ${err.message}`),

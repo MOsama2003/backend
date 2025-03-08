@@ -57,7 +57,7 @@ export class AuthService {
     const { email } = forgotPassword;
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     await this.redisService.setOTP(email, otp);
-    this.mailService
+    await this.mailService
       .sendOTP(email, otp)
       .catch((err) =>
         console.error(`Error sending welcome email: ${err.message}`),
