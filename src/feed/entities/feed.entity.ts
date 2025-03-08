@@ -2,6 +2,7 @@ import { IsNotEmpty, IsString } from "class-validator";
 import { User } from "src/user/entities/user.entity";
 import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Reaction } from "./reaction.entity";
+import { Comment } from "./comment.entity";
 
 @Entity()
 export class Feed {
@@ -24,6 +25,9 @@ export class Feed {
     @ManyToOne(()=> User, (user)=>user.feed, { onDelete: "CASCADE" })
     publisher: User;
 
-    @OneToMany(()=> Reaction, (user)=>user.feed, { cascade: true })
-    reaction: Reaction;
+    @OneToMany(()=> Reaction, (reaction)=>reaction.post, { cascade: true })
+    reaction: Reaction[];
+
+    @OneToMany(()=> Comment, (comment)=>comment.post, { cascade: true })
+    comment: Comment[];
 }

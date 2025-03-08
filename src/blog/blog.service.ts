@@ -11,7 +11,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Blog } from './entities/blog.entity';
 import { ILike, Repository } from 'typeorm';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
-import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class BlogService {
@@ -19,13 +18,12 @@ export class BlogService {
     @InjectRepository(Blog)
     private readonly blogRepository: Repository<Blog>,
     private readonly cloudinaryService: CloudinaryService,
-    private readonly userService: UserService
   ) {}
 
   async create(
     @UploadedFile() articleImage: Express.Multer.File,
     createBlogDto: CreateBlogDto,
-    @Req() req,
+    req : any,
   ) {
     const { articleContent, articleKeyword, articleTitle } = createBlogDto;
     let Image = '';
@@ -37,13 +35,12 @@ export class BlogService {
       }
       Image = articleImageURL.url;
     }
-    const user = await this.userService.findById(req.user.id)
     const article = await this.blogRepository.create({
       articleContent,
       articleImage: Image,
       articleKeyword,
-      articlePublishDate: String(new Date()),
-      user: user ? user : req.user,
+      articlePublishDate: String(new Date().toISOString()),
+      user: req.user,
       articleTitle,
     });
 

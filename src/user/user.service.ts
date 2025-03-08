@@ -43,7 +43,7 @@ export class UserService {
         ...createUserDto,
         role: CONSTANTS.ROLE.FARMER,
         password: hashedPassword,
-        createdAt: String(new Date()),
+        createdAt: String(new Date().toISOString()),
       });
 
       this.mailService
@@ -165,7 +165,7 @@ export class UserService {
       ...createCounsellarDto,
       role: CONSTANTS.ROLE.COUNSELLAR,
       password: hashedPassword,
-      createdAt: String(new Date()),
+      createdAt: String(new Date().toISOString()),
     });
 
     this.mailService
@@ -201,7 +201,7 @@ export class UserService {
       ...createNonDeviceOwnerDto,
       role: CONSTANTS.ROLE.FARMER,
       password: hashedPassword,
-      createdAt: String(new Date()),
+      createdAt: String(new Date().toISOString()),
     });
 
     this.mailService

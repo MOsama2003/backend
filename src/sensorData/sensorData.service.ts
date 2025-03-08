@@ -1,13 +1,15 @@
 import {
   Injectable,
   UnauthorizedException,
-  BadRequestException
+  BadRequestException,
+  InternalServerErrorException
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SensorData } from './entities/sensorData.entity';
 import { CreateSensorDataDto } from './dto/create-sensorData.dto';
 import { UserService } from 'src/user/user.service';
+import { PaginationQueryDto } from './dto/Pagination-data.dto';
 
 @Injectable()
 export class SensorDataService {
@@ -26,5 +28,46 @@ export class SensorDataService {
 
     const sensorData = this.sensorDataRepository.create({...data, userId: user?.id});
     return await this.sensorDataRepository.save(sensorData);
+  }
+
+  async dataListing(PaginationQueryDto : PaginationQueryDto, req : any){
+    const { page = 1, limit = 10 } = PaginationQueryDto;
+        
+        try {
+          const currentPage = Math.max(1, page);
+          const take = Math.max(1, limit);
+          const skip = (currentPage - 1) * take;
+      
+          
+          const [sensorData, total] = await this.sensorDataRepository.findAndCount({
+            where: { deviceId : req.user.deviceId},
+            skip,
+            take,
+            select: ['id', 'nitrogen', 'conductivity', 'pH', 'humidity', 'temperature', 'potassium','phosphorus', 'createdAt']
+          });
+          
+          
+          
+          const pageCount = Math.ceil(total / take);
+          const hasNextPage = currentPage < pageCount;
+          const hasPrevPage = currentPage > 1;
+      
+          return {
+            data: sensorData,
+            metaData: {
+              totalCount: total,
+              pageCount,
+              page: currentPage,
+              take,
+              hasNextPage,
+              hasPrevPage,
+              itemCount: sensorData.length,
+            },
+          };
+        } catch (error) {
+          throw new InternalServerErrorException(
+            'Something went wrong while fetching posts.'
+          );
+        }
   }
 }

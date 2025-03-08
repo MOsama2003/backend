@@ -49,6 +49,19 @@ export class UserController {
     return this.userService.registerCounsellar(createUserDto);
   }
 
+  @Post('/register-device-owner')
+  @UseGuards(new RoleGuard(CONSTANTS.ROLE.ADMIN))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Register a new device owner (Admin only)' })
+  @ApiResponse({ status: 201, description: 'User successfully registered' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden: Only admins can register users',
+  })
+  createDeviceOwner(@Body(ValidationPipe) createUserDto: CreateUserDto) {
+    return this.userService.create(createUserDto)
+  }
+
   @Post('/register-non-device-owner')
   @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({ status: 201, description: 'User successfully registered' })
