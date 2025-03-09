@@ -43,6 +43,7 @@
     "pg": "^8.13.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "swagger-ui-dist": "^5.20.0",
     "swagger-ui-express": "^4.6.2",
     "typeorm": "^0.3.20"
   },
