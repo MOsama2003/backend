@@ -10,6 +10,7 @@ import { RequestedCounsellarModule } from './requested-counsellar/requested-coun
 import { RedisModule } from './redis/redis.module';
 import { BlogModule } from './blog/blog.module';
 import { FeedModule } from './feed/feed.module';
+import { SensorBasedEventAndTaskMgtModule } from './sensor-based-event-and-task-mgt/sensor-based-event-and-task-mgt.module';
 
 @Module({
   imports: [
@@ -38,7 +39,8 @@ import { FeedModule } from './feed/feed.module';
     RequestedCounsellarModule,
     RedisModule,
     BlogModule,
-    FeedModule
+    FeedModule,
+    SensorBasedEventAndTaskMgtModule
   ],
   controllers: [],
   providers: [],
