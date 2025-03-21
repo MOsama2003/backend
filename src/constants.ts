@@ -12,7 +12,7 @@ export const CONSTANTS = {
     '/user/register-non-device-owner',
     '/auth/forgot-password',
     '/auth/verify-otp',
-    '/auth/reset-password',
+    '/auth/reset-password'
   ],
 };
 
@@ -76,4 +76,17 @@ export enum FertilizerType {
   NPK = 'NPK',
   ORGANIC = 'Organic',
   NONE = 'None',
+}
+
+export enum TaskStatus {
+  TODO = 'Todo',
+  PENDING = 'Pending',
+  COMPLETED = 'Completed',
+  CANCELLED = 'Cancelled'
+}
+
+export enum TaskSeverity {
+  HIGH = 'HIGH',
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM'
 }

@@ -70,4 +70,13 @@ export class SensorDataService {
           );
         }
   }
+
+  async lastTwoEntries(deviceId : string) {
+    const lastTwoEntries = await this.sensorDataRepository.find({
+      where: {deviceId},
+      order: { id: "DESC" },
+      take: 2,
+    });
+    return lastTwoEntries
+  }
 }

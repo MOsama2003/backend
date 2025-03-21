@@ -9,5 +9,6 @@ import { SensorDataController } from './sensorData.controller';
   imports: [TypeOrmModule.forFeature([SensorData]), UserModule],
   controllers: [SensorDataController],
   providers: [SensorDataService],
+  exports: [SensorDataService]
 })
 export class SensorDataModule {}
