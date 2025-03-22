@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { Between, In, Repository } from 'typeorm';
 import { DeviceTasks } from './entities/task.entity';
 import { TaskSeverity, TaskStatus } from 'src/constants';
+import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
 
 @Injectable()
 export class SensorBasedTaskService {
@@ -64,6 +65,24 @@ export class SensorBasedTaskService {
     }
   }
 
+  async getTasksOfWholeWeek(deviceId: string): Promise<DeviceTasks[]> {
+      const now = new Date();
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay());
+      startOfWeek.setHours(0, 0, 0, 0);
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6); 
+      endOfWeek.setHours(23, 59, 59, 999);
+    
+      return this.taskRepository.find({
+        where: {
+          deviceId,
+          createdAt: Between(startOfWeek, endOfWeek),
+        },
+        order: { createdAt: "DESC" },
+      });
+    }
+
   private mapTaskStatus(status: string): TaskStatus | undefined {
     const lowerCaseStatus = status.toLowerCase();
     return Object.values(TaskStatus).find(
@@ -71,11 +90,15 @@ export class SensorBasedTaskService {
     );
   }
 
-  // Function to map taskSeverity case-insensitively
   private mapTaskSeverity(severity: string): TaskSeverity | undefined {
     const lowerCaseSeverity = severity.toLowerCase();
     return Object.values(TaskSeverity).find(
       (enumValue) => enumValue.toLowerCase() === lowerCaseSeverity,
     );
+  }
+
+  async updateStatus(data : UpdateTaskStatusDto) {
+    const { id, taskStatus} = data;
+    return await this.taskRepository.update(id, {taskStatus})
   }
 }

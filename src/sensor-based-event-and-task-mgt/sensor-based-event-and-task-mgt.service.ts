@@ -6,6 +6,9 @@ import { SensorOnboarding } from './entities/sensor-based-event-and-task-mgt.ent
 import { SensorDataService } from 'src/sensorData/sensorData.service';
 import { SensorBasedAdvisoryService } from './advisory-generation.service';
 import { SensorBasedTaskService } from './tasks-generation.service';
+import { SensorBasedWeeklySummaryService } from './weekly-summary.service';
+import { TaskStatus } from 'src/constants';
+import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
 
 @Injectable()
 export class SensorBasedEventAndTaskMgtService {
@@ -15,6 +18,7 @@ export class SensorBasedEventAndTaskMgtService {
     private readonly sensorDataService: SensorDataService,
     private readonly sensorBasedAdvisoryService: SensorBasedAdvisoryService,
     private readonly sensorBasedTaskService: SensorBasedTaskService,
+    private readonly sensorBasedWeeklySummaryService: SensorBasedWeeklySummaryService
   ) {}
 
   async create(
@@ -45,12 +49,8 @@ export class SensorBasedEventAndTaskMgtService {
     }
 
     const res = await response.json();
-    const regex = /```json\n([\s\S]*?)\n```/;
-    let match = res?.advisories.match(regex);
-    match = match ? match[1] : null;
-
     return this.sensorBasedAdvisoryService.saveAdvisories(
-      JSON.parse(match),
+      JSON.parse(res?.advisories),
       deviceId,
     );
   }
@@ -81,10 +81,10 @@ export class SensorBasedEventAndTaskMgtService {
     }
 
     const res = await response.json();
-    const regex = /```json\n([\s\S]*?)\n```/;
-    let match = res?.tasks.match(regex);
-    match = match ? match[1] : null;
-    return this.sensorBasedTaskService.saveTasks(JSON.parse(match), deviceId);
+    return this.sensorBasedTaskService.saveTasks(
+      JSON.parse(res?.tasks),
+      deviceId,
+    );
   }
 
   async updateTasks(deviceId: string) {
@@ -115,12 +115,52 @@ export class SensorBasedEventAndTaskMgtService {
     if (!response.ok) {
       throw new Error(`Failed to send advisories: ${response.statusText}`);
     }
- 
-    const res = await response.json();
-    const regex = /\[\s*[\s\S]*?\s*\]/; // Matches a JSON array inside square brackets
 
-    let match = res?.updatedTasks.match(regex);
-    match = match ? JSON.parse(match[0]) : null;
-    return this.sensorBasedTaskService.updateTasks(match, deviceId);
+    const res = await response.json();
+    return this.sensorBasedTaskService.updateTasks(
+      JSON.parse(res?.updatedTasks),
+      deviceId,
+    );
+  }
+
+  async weeklyReport(deviceId: string) {
+    if (!deviceId) return;
+    const latestNKP = await this.sensorDataService.lastTwoEntries(deviceId);
+    const farmData = await this.farmRepository.findOne({ where: { deviceId } });
+    const advisories =
+      await this.sensorBasedAdvisoryService.getAdvisoryOfWholeWeek(deviceId);
+    const tasks = await this.sensorBasedTaskService.getTasksOfWholeWeek(deviceId);
+    const body = {
+      farm_info: farmData ? JSON.parse(JSON.stringify(farmData)) : null,
+      npk_data: latestNKP
+        ? latestNKP.map((entry) => JSON.parse(JSON.stringify(entry)))
+        : [],
+      advisories: advisories
+        ? advisories.map((entry) => JSON.parse(JSON.stringify(entry)))
+        : [],
+      tasks: tasks
+        ? tasks.map((entry) => JSON.parse(JSON.stringify(entry)))
+        : [],
+    };
+    const response = await fetch('http://0.0.0.0:8082/generate-report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to send advisories: ${response.statusText}`);
+    }
+
+    const res = await response.json();
+    return this.sensorBasedWeeklySummaryService.saveWeeklySummary(
+      JSON.parse(res?.weeklySummary),
+      deviceId,
+    );
+  }
+
+  async updateTaskStatus(data : UpdateTaskStatusDto){
+    const { id, taskStatus } = data;
+    return this.sensorBasedTaskService.updateStatus({id, taskStatus})
   }
 }
