@@ -12,6 +12,7 @@ import { BlogModule } from './blog/blog.module';
 import { FeedModule } from './feed/feed.module';
 import { SensorBasedEventAndTaskMgtModule } from './sensor-based-event-and-task-mgt/sensor-based-event-and-task-mgt.module';
 import { AppointmentModule } from './appointment/appointment.module';
+import { ConsultAiChatModule } from './consult-ai-chat/consult-ai-chat.module';
 
 @Module({
   imports: [
@@ -42,7 +43,8 @@ import { AppointmentModule } from './appointment/appointment.module';
     BlogModule,
     FeedModule,
     SensorBasedEventAndTaskMgtModule,
-    AppointmentModule
+    AppointmentModule,
+    ConsultAiChatModule
   ],
   controllers: [],
   providers: [],
