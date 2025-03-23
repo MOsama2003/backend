@@ -10,6 +10,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
   controllers: [RequestedCounsellarController],
   providers: [RequestedCounsellarService],
   imports: [TypeOrmModule.forFeature([RequestedCounsellar]), CloudinaryModule, MailModule],
-  exports: [RequestedCounsellarService]
+  exports: [RequestedCounsellarService, TypeOrmModule]
 })
 export class RequestedCounsellarModule {}

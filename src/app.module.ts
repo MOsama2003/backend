@@ -11,6 +11,7 @@ import { RedisModule } from './redis/redis.module';
 import { BlogModule } from './blog/blog.module';
 import { FeedModule } from './feed/feed.module';
 import { SensorBasedEventAndTaskMgtModule } from './sensor-based-event-and-task-mgt/sensor-based-event-and-task-mgt.module';
+import { AppointmentModule } from './appointment/appointment.module';
 
 @Module({
   imports: [
@@ -40,7 +41,8 @@ import { SensorBasedEventAndTaskMgtModule } from './sensor-based-event-and-task-
     RedisModule,
     BlogModule,
     FeedModule,
-    SensorBasedEventAndTaskMgtModule
+    SensorBasedEventAndTaskMgtModule,
+    AppointmentModule
   ],
   controllers: [],
   providers: [],
