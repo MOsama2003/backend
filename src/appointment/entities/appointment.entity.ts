@@ -7,7 +7,7 @@ export class Appointment {
   id: number;
 
   @Column()
-  userId: number; // Assuming users exist in your system
+  userId: number; 
 
   @Column()
   appointmentDate: Date;
