@@ -47,6 +47,7 @@ import { ConsultAiChatModule } from './consult-ai-chat/consult-ai-chat.module';
     ConsultAiChatModule,
     SensorBasedEventAndTaskMgtModule,
     NotificationsModule,
+    NotificationsModule
   ],
   controllers: [],
   providers: [],
