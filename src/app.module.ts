@@ -13,6 +13,7 @@ import { FeedModule } from './feed/feed.module';
 import { SensorBasedEventAndTaskMgtModule } from './sensor-based-event-and-task-mgt/sensor-based-event-and-task-mgt.module';
 import { AppointmentModule } from './appointment/appointment.module';
 import { ConsultAiChatModule } from './consult-ai-chat/consult-ai-chat.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -44,7 +45,8 @@ import { ConsultAiChatModule } from './consult-ai-chat/consult-ai-chat.module';
     FeedModule,
     SensorBasedEventAndTaskMgtModule,
     AppointmentModule,
-    ConsultAiChatModule
+    ConsultAiChatModule,
+    NotificationsModule
   ],
   controllers: [],
   providers: [],
