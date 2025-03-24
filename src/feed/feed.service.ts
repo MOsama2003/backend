@@ -16,6 +16,7 @@ import { PostReaction } from 'src/constants';
 import { CommentListingDto, CreateCommentDto } from './dto/comment-feed.dto';
 import { User } from 'src/user/entities/user.entity';
 import { PaginationQueryDto } from './dto/pagination-feed.dto';
+import { FirebaseService } from 'src/notifications/firebase.service';
 
 @Injectable()
 export class FeedService {
@@ -29,6 +30,7 @@ export class FeedService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly cloudinaryService: CloudinaryService,
+    private readonly notificationService: FirebaseService,
   ) {}
 
   async create(
@@ -91,6 +93,16 @@ export class FeedService {
     });
 
     await this.reactionRepository.save(newReaction);
+
+    await this.notificationService.sendNotification(
+      {
+        title: 'New Reaction Added',
+        body: `${req.user.name} reacted ${reactionType} to your post`,
+        data: { postId },
+      },
+      +post.publisher.id,
+    );
+
     return { message: `${reactionType} added successfully` };
   }
 
@@ -129,53 +141,69 @@ export class FeedService {
     });
 
     newComment.mentions = mentionedUsers;
+    await this.notificationService.sendNotification(
+      {
+        title: 'New Comment Added to Your Post',
+        body: `${req.user.name} commented: ${commentText}`,
+        data: { postId },
+      },
+      +post.publisher.id,
+    );
+
     return await this.commentRepository.save(newComment);
   }
 
   async feedListing(paginationQueryDto: PaginationQueryDto, req: any) {
     const { page = 1, limit = 10, search = '' } = paginationQueryDto;
-    
+
     try {
       const currentPage = Math.max(1, page);
       const take = Math.max(1, limit);
       const skip = (currentPage - 1) * take;
-  
+
       const searchFilters = search ? [{ caption: ILike(`%${search}%`) }] : [];
-  
+
       const [feed, total] = await this.feedRepository.findAndCount({
         where: searchFilters.length ? searchFilters : undefined,
         skip,
         take,
         relations: ['comment', 'reaction', 'reaction.user', 'publisher'], // Load user in reaction
       });
-      
+
       const processedFeed = feed.map((post) => ({
         id: post.id,
         caption: post.caption,
         media: post.media,
         publishedDate: post.publishedDate,
-        upvoteCount: post.reaction?.filter(
-          (reaction) => reaction.status === PostReaction.Upvote
-        ).length || 0,
+        upvoteCount:
+          post.reaction?.filter(
+            (reaction) => reaction.status === PostReaction.Upvote,
+          ).length || 0,
         commentCount: post.comment?.length || 0,
-        hasUpvoted: post.reaction?.some(
-          (reaction) =>{
-            return reaction.status === PostReaction.Upvote && reaction.user?.id === req.user.id}
-        ) || false,
-        hasDownvoted: post.reaction?.some(
-          (reaction) => reaction.status === PostReaction.Devote && reaction.user?.id === req.user.id
-        ) || false,
+        hasUpvoted:
+          post.reaction?.some((reaction) => {
+            return (
+              reaction.status === PostReaction.Upvote &&
+              reaction.user?.id === req.user.id
+            );
+          }) || false,
+        hasDownvoted:
+          post.reaction?.some(
+            (reaction) =>
+              reaction.status === PostReaction.Devote &&
+              reaction.user?.id === req.user.id,
+          ) || false,
         publisher: {
           id: post.publisher.id,
           name: `${post.publisher.firstName} ${post.publisher.lastName}`,
           profilePic: post.publisher.avatar,
         },
       }));
-      
+
       const pageCount = Math.ceil(total / take);
       const hasNextPage = currentPage < pageCount;
       const hasPrevPage = currentPage > 1;
-  
+
       return {
         data: processedFeed,
         metaData: {
@@ -190,33 +218,34 @@ export class FeedService {
       };
     } catch (error) {
       throw new InternalServerErrorException(
-        'Something went wrong while fetching posts.'
+        'Something went wrong while fetching posts.',
       );
     }
   }
-  
+
   async commentListing(commentListingDto: CommentListingDto) {
     const { page = 1, limit = 10, parentCommentId, postId } = commentListingDto;
-  
+
     try {
       const currentPage = Math.max(1, page);
       const take = Math.max(1, limit);
       const skip = (currentPage - 1) * take;
-  
+
       const commentedPost = await this.feedRepository.findOne({
         where: { id: Number(postId) },
       });
-  
+
       if (!commentedPost) {
         throw new BadRequestException('Invalid Post ID!');
       }
-   const whereCondition: any = { post: { id: commentedPost.id } };
+      const whereCondition: any = { post: { id: commentedPost.id } };
       if (parentCommentId !== undefined) {
-        whereCondition.parentComment = parentCommentId !== null ? { id: Number(parentCommentId) } : IsNull();
+        whereCondition.parentComment =
+          parentCommentId !== null ? { id: Number(parentCommentId) } : IsNull();
       } else {
         whereCondition.parentComment = IsNull();
       }
-  
+
       const [comments, total] = await this.commentRepository.findAndCount({
         where: whereCondition,
         skip,
@@ -225,20 +254,20 @@ export class FeedService {
         select: ['id', 'commentText', 'mentions', 'publishedDate'],
       });
 
-      
-  
       // Fetch reply count for each comment
       const commentsWithReplies = await Promise.all(
         comments.map(async (comment) => {
           const replyCount = await this.commentRepository.count({
             where: { parentComment: { id: comment.id } },
           });
-  
+
           return {
             id: comment.id,
             commentText: comment.commentText,
             mentions: comment.mentions,
-            parentCommentId: comment.parentComment ? comment.parentComment.id : null,
+            parentCommentId: comment.parentComment
+              ? comment.parentComment.id
+              : null,
             publishedDate: comment.publishedDate,
             numberOfReplies: replyCount,
             mention: comment.mentions,
@@ -250,13 +279,13 @@ export class FeedService {
                 }
               : null,
           };
-        })
+        }),
       );
-  
+
       const pageCount = Math.ceil(total / take);
       const hasNextPage = currentPage < pageCount;
       const hasPrevPage = currentPage > 1;
-  
+
       return {
         data: commentsWithReplies,
         metaData: {
@@ -271,7 +300,9 @@ export class FeedService {
       };
     } catch (error) {
       console.error('Error fetching comments:', error);
-      throw new InternalServerErrorException(error.message || 'Something went wrong while fetching comments.');
+      throw new InternalServerErrorException(
+        error.message || 'Something went wrong while fetching comments.',
+      );
     }
   }
 }

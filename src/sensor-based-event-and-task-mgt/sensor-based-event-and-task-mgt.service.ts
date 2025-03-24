@@ -28,7 +28,7 @@ export class SensorBasedEventAndTaskMgtService {
     return await this.farmRepository.save(farm);
   }
 
-  async addAdvisories(deviceId: string) {
+  async addAdvisories(deviceId: string, req) {
     if (!deviceId) return;
     const latestNKP = await this.sensorDataService.lastTwoEntries(deviceId);
     const farmData = await this.farmRepository.findOne({ where: { deviceId } });
@@ -52,10 +52,11 @@ export class SensorBasedEventAndTaskMgtService {
     return this.sensorBasedAdvisoryService.saveAdvisories(
       JSON.parse(res?.advisories),
       deviceId,
+      req
     );
   }
 
-  async addTasks(deviceId: string) {
+  async addTasks(deviceId: string, req) {
     if (!deviceId) return;
     const latestNKP = await this.sensorDataService.lastTwoEntries(deviceId);
     const farmData = await this.farmRepository.findOne({ where: { deviceId } });
@@ -84,10 +85,11 @@ export class SensorBasedEventAndTaskMgtService {
     return this.sensorBasedTaskService.saveTasks(
       JSON.parse(res?.tasks),
       deviceId,
+      req
     );
   }
 
-  async updateTasks(deviceId: string) {
+  async updateTasks(deviceId: string, req) {
     if (!deviceId) return;
     const latestNKP = await this.sensorDataService.lastTwoEntries(deviceId);
     const farmData = await this.farmRepository.findOne({ where: { deviceId } });
@@ -120,10 +122,11 @@ export class SensorBasedEventAndTaskMgtService {
     return this.sensorBasedTaskService.updateTasks(
       JSON.parse(res?.updatedTasks),
       deviceId,
+      req
     );
   }
 
-  async weeklyReport(deviceId: string) {
+  async weeklyReport(deviceId: string, req) {
     if (!deviceId) return;
     const latestNKP = await this.sensorDataService.lastTwoEntries(deviceId);
     const farmData = await this.farmRepository.findOne({ where: { deviceId } });
@@ -156,6 +159,7 @@ export class SensorBasedEventAndTaskMgtService {
     return this.sensorBasedWeeklySummaryService.saveWeeklySummary(
       JSON.parse(res?.weeklySummary),
       deviceId,
+      req
     );
   }
 

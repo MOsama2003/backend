@@ -8,6 +8,7 @@ import {
   import { UserService } from 'src/user/user.service';
   import { DeviceLocDetails } from './entities/deviceLocDetails.entity';
   import { CreateDeviceLocDetails } from './dto/create-deviceLocDetails.dto';
+import { FirebaseService } from 'src/notifications/firebase.service';
   
   @Injectable()
   export class DeviceLocDetailsService {
@@ -15,6 +16,7 @@ import {
       @InjectRepository(DeviceLocDetails)
       private readonly deviceLocDetailRepository: Repository<DeviceLocDetails>,
       private readonly userService: UserService,
+      private readonly notificationService: FirebaseService
     ) {}
   
     private validateCoordinates(latitude: number, longitude: number) {
@@ -54,6 +56,13 @@ import {
           ...data,
           userId: user.id,
         });
+
+        await this.notificationService.sendNotification({
+          title: 'Updated Device Location!',
+          body: '',
+          data
+        }, user.id);
+
         return await this.deviceLocDetailRepository.save(newEntry);
       }
     }

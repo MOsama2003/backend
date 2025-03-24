@@ -2,21 +2,29 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, Repository } from 'typeorm';
 import { DeviceAdvisory } from './entities/advisory.entity';
+import { FirebaseService } from 'src/notifications/firebase.service';
 
 @Injectable()
 export class SensorBasedAdvisoryService {
   constructor(
     @InjectRepository(DeviceAdvisory)
     private readonly advisoryRepository: Repository<DeviceAdvisory>,
+    private readonly notificationService: FirebaseService
   ) {}
 
-  async saveAdvisories(advisories: any[], deviceId: string): Promise<DeviceAdvisory[]> {
+  async saveAdvisories(advisories: any[], deviceId: string, req): Promise<DeviceAdvisory[]> {
     const advisoryEntities = advisories.map(advisory => ({
       ...advisory,
       deviceId,
       createdAt: new Date(),
     }));
 
+    await this.notificationService.sendNotification({
+      title : 'New Advisories added for today',
+      body: 'check Events',
+      data: advisories
+    }, +req.user.id)
+    
     return this.advisoryRepository.save(advisoryEntities);
   }
 

@@ -10,11 +10,12 @@ import { SensorBasedTaskService } from './tasks-generation.service';
 import { DeviceTasks } from './entities/task.entity';
 import { SensorBasedWeeklySummaryService } from './weekly-summary.service';
 import { WeeklyFarmReport } from './entities/week-summary.entity';
+import { NotificationsModule } from 'src/notifications/notifications.module';
 
 @Module({
   controllers: [SensorBasedEventAndTaskMgtController],
   providers: [SensorBasedEventAndTaskMgtService, SensorBasedAdvisoryService, SensorBasedTaskService, SensorBasedWeeklySummaryService],
-  imports: [TypeOrmModule.forFeature([SensorOnboarding, DeviceAdvisory, DeviceTasks, WeeklyFarmReport]), forwardRef(() =>SensorDataModule)],
+  imports: [TypeOrmModule.forFeature([SensorOnboarding, DeviceAdvisory, DeviceTasks, WeeklyFarmReport]), forwardRef(() =>SensorDataModule), NotificationsModule],
   exports: [SensorBasedEventAndTaskMgtService]
 })
 export class SensorBasedEventAndTaskMgtModule {}

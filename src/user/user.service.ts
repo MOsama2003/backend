@@ -125,6 +125,10 @@ export class UserService {
     return this.userRepository.findOne({ where: { id: id }, select: ['avatar','firstName', 'id', 'email', 'role'] });
   }
 
+  async findByIdForNotification(id: number) {
+    return await this.userRepository.findOne({ where: { id: id } });
+  }
+
   async setAvatar(userId: string | number, file: Express.Multer.File) {
     try {
       const uploadedFile = await this.cloudinaryService.uploadFile(file);

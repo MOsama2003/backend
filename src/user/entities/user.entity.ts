@@ -3,6 +3,7 @@ import { Blog } from 'src/blog/entities/blog.entity';
 import { Comment } from 'src/feed/entities/comment.entity';
 import { Feed } from 'src/feed/entities/feed.entity';
 import { Reaction } from 'src/feed/entities/reaction.entity';
+import { Notification } from 'src/notifications/entities/notification.entity';
 import {
   Column,
   Entity,
@@ -50,6 +51,9 @@ export class User {
   @Column({ default: false })
   disabled: boolean;
 
+  @Column({ nullable: true })
+  fcmToken: string;
+
   @OneToMany(() => Blog, (article) => article.user, { cascade: true })
   blog: Blog[];
 
@@ -66,4 +70,7 @@ export class User {
 
   @ManyToMany(() => Comment, (comment) => comment.mentions)
   mentionedIn: Comment[];
+
+  @OneToMany(()=> Notification, (notification)=>notification.user)
+  notifications: Notification[];
 }

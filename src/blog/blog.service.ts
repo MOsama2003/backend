@@ -11,6 +11,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Blog } from './entities/blog.entity';
 import { ILike, Repository } from 'typeorm';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
+import { FirebaseService } from 'src/notifications/firebase.service';
 
 @Injectable()
 export class BlogService {
@@ -18,6 +19,7 @@ export class BlogService {
     @InjectRepository(Blog)
     private readonly blogRepository: Repository<Blog>,
     private readonly cloudinaryService: CloudinaryService,
+    private readonly notificationService: FirebaseService
   ) {}
 
   async create(
@@ -45,6 +47,13 @@ export class BlogService {
     });
 
     await this.blogRepository.save(article);
+    
+    await this.notificationService.sendGlobalNotification({
+      title: 'New Article Added',
+      body: `${articleTitle} is added`,
+      data: { articleId: article.id }, 
+    });
+    
     return {
       message: 'Article created successfully!',
       article,

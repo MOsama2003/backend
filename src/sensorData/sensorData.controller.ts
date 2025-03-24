@@ -14,11 +14,11 @@ export class SensorDataController {
   ) {}
 
   @Post()
-  async addSensorData(@Body() data: CreateSensorDataDto) {
+  async addSensorData(@Body() data: CreateSensorDataDto, @Req() req) {
     const sensorData = await this.sensorDataService.create(data);
     this.eventEmitter.emit(
       'sensor.data.process',
-      new SensorDataEvent(data.deviceId),
+      new SensorDataEvent(data.deviceId, req),
     );
     return sensorData;
   }

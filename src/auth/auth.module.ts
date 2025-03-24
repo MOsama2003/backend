@@ -13,6 +13,7 @@ import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { RequestedCounsellarService } from 'src/requested-counsellar/requested-counsellar.service';
 import { RequestedCounsellar } from 'src/requested-counsellar/entities/requested-counsellar.entity';
 import { RedisService } from 'src/redis/redis.service';
+import { NotificationsModule } from 'src/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { RedisService } from 'src/redis/redis.service';
       secret: 'ACCESS-TOKEN',
       signOptions: { expiresIn: '1d' },
     }),
+    NotificationsModule
   ],
   controllers: [AuthController],
   providers: [AuthService, UserService, LocalStrategy, JwtStrategy, MailService, CloudinaryService, RequestedCounsellarService, RedisService],

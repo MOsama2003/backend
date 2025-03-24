@@ -10,13 +10,15 @@ import { SensorData } from './entities/sensorData.entity';
 import { CreateSensorDataDto } from './dto/create-sensorData.dto';
 import { UserService } from 'src/user/user.service';
 import { PaginationQueryDto } from './dto/Pagination-data.dto';
+import { FirebaseService } from 'src/notifications/firebase.service';
 
 @Injectable()
 export class SensorDataService {
   constructor(
     @InjectRepository(SensorData)
     private readonly sensorDataRepository: Repository<SensorData>,
-    private readonly userService: UserService
+    private readonly userService: UserService,
+    private readonly notificationService: FirebaseService
   ) {}
 
   async create(data: CreateSensorDataDto) {
@@ -27,6 +29,13 @@ export class SensorDataService {
     if (!user) throw new UnauthorizedException();
 
     const sensorData = this.sensorDataRepository.create({...data, userId: user?.id});
+    
+    await this.notificationService.sendNotification({
+      title : 'New Data from farm has been added',
+      body: 'check new data',
+      data
+    }, user.id)
+
     return await this.sensorDataRepository.save(sensorData);
   }
 
@@ -51,7 +60,7 @@ export class SensorDataService {
           const pageCount = Math.ceil(total / take);
           const hasNextPage = currentPage < pageCount;
           const hasPrevPage = currentPage > 1;
-      
+          
           return {
             data: sensorData,
             metaData: {

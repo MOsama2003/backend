@@ -6,7 +6,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { LoginUserDto } from './dto/login-user-dto';
-import { ForgotPasswordUserDto, OTPDto, ResetPasswordUserDto } from './dto/forgot-password.dto';
+import {
+  ForgotPasswordUserDto,
+  OTPDto,
+  ResetPasswordUserDto,
+} from './dto/forgot-password.dto';
+import { FirebaseService } from 'src/notifications/firebase.service';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -15,6 +20,7 @@ export class AuthController {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly authService: AuthService,
+    private readonly notificationService: FirebaseService,
   ) {}
 
   @Post('/login')
@@ -29,7 +35,8 @@ export class AuthController {
     status: 401,
     description: 'Unauthorized. Invalid credentials.',
   })
-  async login(@Req() req) {
+  async login(@Req() req, @Body() body: LoginUserDto) {
+    const { fcmToken } = body;
     const user: User = req.user;
     const accessToken = await this.authService.generateAccessToken({
       deviceId: user.deviceId,
@@ -42,12 +49,12 @@ export class AuthController {
     });
 
     user.refreshToken = refreshToken;
-    await this.userRepository.save(user);
-
+    await this.userRepository.save({ ...user, fcmToken });
+    await this.notificationService.subscribeToGlobalNotifications(fcmToken);
     return {
       access_token: accessToken,
       refresh_token: refreshToken,
-      user
+      user,
     };
   }
 

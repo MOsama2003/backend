@@ -4,21 +4,30 @@ import { Between, In, Repository } from 'typeorm';
 import { DeviceTasks } from './entities/task.entity';
 import { TaskSeverity, TaskStatus } from 'src/constants';
 import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
+import { FirebaseService } from 'src/notifications/firebase.service';
 
 @Injectable()
 export class SensorBasedTaskService {
   constructor(
     @InjectRepository(DeviceTasks)
     private readonly taskRepository: Repository<DeviceTasks>,
+    private readonly notificationService: FirebaseService
   ) {}
 
-  async saveTasks(tasks: any[], deviceId: string): Promise<DeviceTasks[]> {
+  async saveTasks(tasks: any[], deviceId: string, req): Promise<DeviceTasks[]> {
     const taskEntities = tasks.map((task) => ({
       ...task,
       taskStatus: TaskStatus.TODO,
       deviceId,
       createdAt: new Date(),
     }));
+
+    await this.notificationService.sendNotification({
+      title : 'New Tasks added for today',
+      body: 'check Tasks',
+      data: tasks
+    }, +req.user.id)
+    
 
     return this.taskRepository.save(taskEntities);
   }
@@ -42,7 +51,7 @@ export class SensorBasedTaskService {
     return tasks;
   }
 
-  async updateTasks(updatedTasks: any[], deviceId: string) {
+  async updateTasks(updatedTasks: any[], deviceId: string, req) {
     for (const task of updatedTasks) {
       const status = task.taskStatus
         ? this.mapTaskStatus(task.taskStatus)
@@ -63,6 +72,13 @@ export class SensorBasedTaskService {
         },
       );
     }
+
+    await this.notificationService.sendNotification({
+      title : 'Existing tasks has been updated',
+      body: 'check Events',
+      data: updatedTasks
+    }, +req.user.id)
+    
   }
 
   async getTasksOfWholeWeek(deviceId: string): Promise<DeviceTasks[]> {

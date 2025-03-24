@@ -11,4 +11,8 @@ export class LoginUserDto {
   @IsString()
   @IsNotEmpty()
   password: string;
+
+  @ApiProperty({ description: 'FcmToken for notifications' })
+  @IsString()
+  fcmToken: string;
 }

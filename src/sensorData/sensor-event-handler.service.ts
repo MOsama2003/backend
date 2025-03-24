@@ -15,13 +15,13 @@ export class SensorEventHandlerService {
   async handleSensorData(event: SensorDataEvent) {
     this.logger.log(`Processing advisory for device: ${event.deviceId}`);
 
-    await this.sensorTaskService.addAdvisories(event.deviceId);
+    await this.sensorTaskService.addAdvisories(event.deviceId, event.req);
 
     this.logger.log(
       `✅ Advisory generated for ${event.deviceId}, triggering task creation...`,
     );
-    this.sensorTaskService.addTasks(event.deviceId);
+    this.sensorTaskService.addTasks(event.deviceId, event.req);
 
-    this.sensorTaskService.updateTasks(event.deviceId);
+    this.sensorTaskService.updateTasks(event.deviceId, event.req);
   }
 }

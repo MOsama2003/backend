@@ -7,9 +7,10 @@ import { SensorDataController } from './sensorData.controller';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { SensorEventHandlerService } from './sensor-event-handler.service';
 import { SensorBasedEventAndTaskMgtModule } from 'src/sensor-based-event-and-task-mgt/sensor-based-event-and-task-mgt.module';
+import { NotificationsModule } from 'src/notifications/notifications.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([SensorData]), UserModule, forwardRef(() => SensorBasedEventAndTaskMgtModule), EventEmitterModule.forRoot()],
+  imports: [TypeOrmModule.forFeature([SensorData]), UserModule, forwardRef(() => SensorBasedEventAndTaskMgtModule), EventEmitterModule.forRoot(), NotificationsModule],
   controllers: [SensorDataController],
   providers: [SensorDataService, SensorEventHandlerService],
   exports: [SensorDataService]

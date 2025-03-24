@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Param, Get, Patch } from '@nestjs/common';
+import { Controller, Post, Body, Param, Get, Patch, Req } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -45,26 +45,26 @@ export class SensorBasedEventAndTaskMgtController {
 
   @Get('/advisory/:deviceId')
   @ApiBearerAuth()
-  async getAdvisory(@Param('deviceId') deviceId: string) {
-    return this.sensorBasedEventAndTaskMgtService.addAdvisories(deviceId);
+  async getAdvisory(@Param('deviceId') deviceId: string, @Req() req) {
+    return this.sensorBasedEventAndTaskMgtService.addAdvisories(deviceId, req);
   }
 
   @Get('/task/:deviceId')
   @ApiBearerAuth()
-  async getTask(@Param('deviceId') deviceId: string) {
-    return this.sensorBasedEventAndTaskMgtService.addTasks(deviceId);
+  async getTask(@Param('deviceId') deviceId: string, @Req() req) {
+    return this.sensorBasedEventAndTaskMgtService.addTasks(deviceId, req);
   }
 
   @Get('/update-tasks/:deviceId')
   @ApiBearerAuth()
-  async updateTasks(@Param('deviceId') deviceId: string) {
-    return this.sensorBasedEventAndTaskMgtService.updateTasks(deviceId);
+  async updateTasks(@Param('deviceId') deviceId: string, @Req() req) {
+    return this.sensorBasedEventAndTaskMgtService.updateTasks(deviceId, req);
   }
 
   @Get('/weekly-report/:deviceId')
   @ApiBearerAuth()
-  async generateReport(@Param('deviceId') deviceId: string) {
-    return this.sensorBasedEventAndTaskMgtService.weeklyReport(deviceId);
+  async generateReport(@Param('deviceId') deviceId: string, @Req() req) {
+    return this.sensorBasedEventAndTaskMgtService.weeklyReport(deviceId, req);
   }
 
   @Patch('/update-task-status/:taskId')
@@ -72,7 +72,7 @@ export class SensorBasedEventAndTaskMgtController {
   @ApiParam({ name: 'taskId', type: String, description: 'ID of the task' })
   async updateTaskStatus(
     @Param('taskId') id: string,
-    @Body() body: UpdateTaskStatusDto,
+    @Body() body: UpdateTaskStatusDto
   ) {
     const {taskStatus} = body;
     return this.sensorBasedEventAndTaskMgtService.updateTaskStatus({
