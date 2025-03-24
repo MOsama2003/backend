@@ -5,19 +5,23 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { Notification } from './entities/notification.entity';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class FirebaseService implements OnModuleInit {
   constructor(
+    private readonly configService: ConfigService,
     @InjectRepository(Notification)
     private readonly notificationRepository: Repository<Notification>,
     private readonly userService: UserService,
   ) {}
   async onModuleInit() {
+    const firebaseConfig = JSON.parse(
+      this.configService.get<string>('GOOGLE_APPLICATION_CREDENTIALS_JSON') || '{}',
+    );    
+
     admin.initializeApp({
-      credential: admin.credential.cert(
-        require('../../serviceAccountKey.json'),
-      ),
+      credential: admin.credential.cert(firebaseConfig),
     });
   }
 
