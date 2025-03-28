@@ -14,6 +14,7 @@ import { SensorBasedEventAndTaskMgtModule } from './sensor-based-event-and-task-
 import { NotificationsModule } from './notifications/notifications.module';
 import { AppointmentModule } from './appointment/appointment.module';
 import { ConsultAiChatModule } from './consult-ai-chat/consult-ai-chat.module';
+import { ConversationModule } from './conversation/conversation.module';
 
 @Module({
   imports: [
@@ -47,7 +48,7 @@ import { ConsultAiChatModule } from './consult-ai-chat/consult-ai-chat.module';
     ConsultAiChatModule,
     SensorBasedEventAndTaskMgtModule,
     NotificationsModule,
-    NotificationsModule
+    ConversationModule,
   ],
   controllers: [],
   providers: [],
