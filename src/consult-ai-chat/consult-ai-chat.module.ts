@@ -1,12 +1,15 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConsultAiChatService } from './consult-ai-chat.service';
-import { RedisModule } from 'src/redis/redis.module';
 import { ConsultAiChatController } from './consult-ai-chat.controller';
+import { RedisService } from '../redis/redis.service';
+import { Message } from './entities/message.entity';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { User } from 'src/user/entities/user.entity';
 
 @Module({
-  imports: [RedisModule], // 👈 Make sure RedisModule is imported
-  providers: [ConsultAiChatService],
+  imports: [TypeOrmModule.forFeature([Message, User])],
   controllers: [ConsultAiChatController],
-  exports: [ConsultAiChatService],
+  providers: [ConsultAiChatService, RedisService, CloudinaryService],
 })
 export class ConsultAiChatModule {}
