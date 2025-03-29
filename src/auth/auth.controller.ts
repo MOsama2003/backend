@@ -49,8 +49,12 @@ export class AuthController {
     });
 
     user.refreshToken = refreshToken;
-    await this.userRepository.save({ ...user, fcmToken });
-    await this.notificationService.subscribeToGlobalNotifications(fcmToken);
+    if (fcmToken) {
+      await this.userRepository.save({ ...user, fcmToken });
+      await this.notificationService.subscribeToGlobalNotifications(fcmToken);
+    } else {
+      await this.userRepository.save({ ...user });
+    }
     return {
       access_token: accessToken,
       refresh_token: refreshToken,
