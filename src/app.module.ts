@@ -14,6 +14,7 @@ import { SensorBasedEventAndTaskMgtModule } from './sensor-based-event-and-task-
 import { NotificationsModule } from './notifications/notifications.module';
 import { AppointmentModule } from './appointment/appointment.module';
 import { ConsultAiChatModule } from './consult-ai-chat/consult-ai-chat.module';
+import { ConversationModule } from './conversation/conversation.module';
 import { StripeModule } from './stripe/stripe.module';
 
 @Module({
@@ -48,6 +49,7 @@ import { StripeModule } from './stripe/stripe.module';
     ConsultAiChatModule,
     SensorBasedEventAndTaskMgtModule,
     NotificationsModule,
+    ConversationModule,
     NotificationsModule,
     StripeModule
   ],

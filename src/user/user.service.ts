@@ -216,4 +216,8 @@ export class UserService {
 
     return await this.userRepository.save(newUser);
   }
+
+  async findUserByIds(userIds: Number[]){
+    return await this.userRepository.findByIds(userIds);
+  }
 }

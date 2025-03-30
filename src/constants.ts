@@ -90,3 +90,9 @@ export enum TaskSeverity {
   LOW = 'LOW',
   MEDIUM = 'MEDIUM'
 }
+
+export enum DeliveryStatus {
+  SEEN = 'Seen',
+  DELIVER = 'Deliver',
+  SEND = 'Send'
+}
