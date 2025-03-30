@@ -1,5 +1,6 @@
 import { IsNotEmpty, MinLength, IsEmail } from 'class-validator';
 import { Blog } from 'src/blog/entities/blog.entity';
+import { Message } from 'src/consult-ai-chat/entities/message.entity';
 import { Comment } from 'src/feed/entities/comment.entity';
 import { Feed } from 'src/feed/entities/feed.entity';
 import { Reaction } from 'src/feed/entities/reaction.entity';
@@ -73,4 +74,7 @@ export class User {
 
   @OneToMany(()=> Notification, (notification)=>notification.user)
   notifications: Notification[];
+
+  @OneToMany(() => Message, (message) => message.user)
+  messages: Message[];
 }

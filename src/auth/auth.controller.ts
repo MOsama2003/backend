@@ -27,6 +27,17 @@ export class AuthController {
   @UseGuards(AuthGuard('local'))
   @ApiOperation({ summary: 'Login an existing user and generate tokens' })
   @ApiBody({ type: LoginUserDto })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        email: { type: 'string', example: 'mo354598@gmail.com' },
+        password: { type: 'string', example: 'string' },
+        fcmToken: { type: 'string', example: 'null' },
+      },
+      required: ['email', 'password', 'fcmToken'],
+    },
+  })
   @ApiResponse({
     status: 200,
     description: 'Successfully logged in. Returns access and refresh tokens.',
