@@ -87,9 +87,10 @@ export class RequestedCounsellarController {
   }
 
   @Get('/listing')
-  @UseGuards(new RoleGuard(CONSTANTS.ROLE.ADMIN))
+  // @UseGuards(new RoleGuard(CONSTANTS.ROLE.ADMIN))
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get list of requested counsellors (Admin only)' })
+  @ApiOperation({ summary: 'Get list of requested counsellors' })
+  // @ApiOperation({ summary: 'Get list of requested counsellors (Admin only)' })
   @ApiResponse({ status: 200, description: 'List of requested counsellors' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   findAll(@Query() paginationQuery: PaginationQueryDto) {
