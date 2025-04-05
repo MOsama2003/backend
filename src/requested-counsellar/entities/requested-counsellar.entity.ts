@@ -21,6 +21,18 @@ export class RequestedCounsellar {
   @Column()  
   @IsNotEmpty()
   resume: string;
+  
+  @Column()  
+  @IsNotEmpty()
+  profilePic: string;
+  
+  @Column()  
+  @IsNotEmpty()
+  yoe: string; //years of experience
+  
+  @Column()  
+  @IsNotEmpty()
+  expertise: string; 
 
   @Column({ type: 'simple-array', nullable: true, default: '1,2,3,4,5'  })  
   workingDays: number[];  
