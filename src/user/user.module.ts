@@ -8,9 +8,10 @@ import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 import { RequestedCounsellarModule } from 'src/requested-counsellar/requested-counsellar.module';
 import { Reaction } from 'src/feed/entities/reaction.entity';
 import { Comment } from 'src/feed/entities/comment.entity';
+import { RequestedCounsellar } from 'src/requested-counsellar/entities/requested-counsellar.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Reaction, Comment]), MailModule, CloudinaryModule, RequestedCounsellarModule],
+  imports: [TypeOrmModule.forFeature([User, Reaction, Comment, RequestedCounsellar]), MailModule, CloudinaryModule, RequestedCounsellarModule],
   controllers: [UserController],
   providers: [UserService],
   exports: [UserService]
