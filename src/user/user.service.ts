@@ -13,19 +13,28 @@ import { CONSTANTS } from '../constants';
 import { MailService } from '../mail/mail.service';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
-import { CreateCounsellarDto } from './dto/create-counsellar.dto';
 import { RequestedCounsellarService } from 'src/requested-counsellar/requested-counsellar.service';
 import { CreateNonDeviceOwnerDto } from './dto/create-non-device-owner.dto';
+import { RequestedCounsellar } from 'src/requested-counsellar/entities/requested-counsellar.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(RequestedCounsellar)
+    private readonly counsellarRepository: Repository<RequestedCounsellar>,
     private readonly cloudinaryService: CloudinaryService,
     private readonly requestedUserService: RequestedCounsellarService,
     private readonly mailService: MailService,
   ) {}
+
+  private generateRandomPassword(length = 10): string {
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+    return Array.from({ length }, () =>
+      chars.charAt(Math.floor(Math.random() * chars.length))
+    ).join('');
+  }
 
   async create(createUserDto: CreateUserDto) {
     const { email, deviceId, password } = createUserDto;
@@ -150,42 +159,63 @@ export class UserService {
     return this.userRepository.findOne({ where: { deviceId: id } });
   }
 
-  async registerCounsellar(createCounsellarDto: CreateCounsellarDto) {
-    const { email, password } = createCounsellarDto;
-    const existingUser = await this.userRepository.findOne({
-      where: [{ email }],
+  
+  async approveCounsellarById(id: number) {
+    const counsellar = await this.counsellarRepository.findOne({
+      where: { id },
     });
-    if (existingUser) {
-      throw new BadRequestException('Email already registered!');
-    }
-    const requestedUser = await this.requestedUserService.find(email);
-    if (!requestedUser) {
-      throw new BadRequestException('User is not Requested!');
+
+    if (!counsellar) {
+      throw new BadRequestException(`RequestedCounsellar with ID ${id} not found.`);
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    if (counsellar.isApproved) {
+      throw new BadRequestException('Counsellar already approved.');
+    }
+
+    const existingUser = await this.userRepository.findOne({
+      where: { email: counsellar.email },
+    });
+
+    if (existingUser) {
+      throw new BadRequestException('Email already registered.');
+    }
+
+    const randomPassword = this.generateRandomPassword();
+    const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
     const newUser = this.userRepository.create({
-      ...createCounsellarDto,
+      email: counsellar.email,
+      firstName: counsellar.firstName,
+      lastName: counsellar.lastName,
       role: CONSTANTS.ROLE.COUNSELLAR,
       password: hashedPassword,
-      createdAt: String(new Date().toISOString()),
+      createdAt: new Date().toISOString(),
     });
+
+    const savedUser = await this.userRepository.save(newUser);
 
     await this.mailService
       .sendCredentialsMailToRequestedCounsellar(
-        newUser.email,
-        newUser.firstName,
-        email,
-        password,
+        savedUser.email,
+        savedUser.firstName,
+        savedUser.email,
+        randomPassword,
       )
       .catch((err) =>
         console.error(`Error sending welcome email: ${err.message}`),
       );
 
-    await this.requestedUserService.removeAfterRegisteration(email);
+    counsellar.isApproved = true;
+    counsellar.user = savedUser;
 
-    return await this.userRepository.save(newUser);
+    await this.counsellarRepository.save(counsellar);
+
+    return {
+      message: 'Counsellar approved & user registered successfully.',
+      counsellarId: counsellar.id,
+      userId: savedUser.id,
+    };
   }
 
   async registerNonDeviceOwner(

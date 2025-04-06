@@ -28,7 +28,6 @@ import {
 } from '@nestjs/swagger';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { CreateCounsellarDto } from './dto/create-counsellar.dto';
 import { CreateNonDeviceOwnerDto } from './dto/create-non-device-owner.dto';
 
 @ApiTags('User')
@@ -36,7 +35,7 @@ import { CreateNonDeviceOwnerDto } from './dto/create-non-device-owner.dto';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post('/register-counsellar')
+  @Patch('/register-counsellar/:id')
   @UseGuards(new RoleGuard(CONSTANTS.ROLE.ADMIN))
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Register a new user (Admin only)' })
@@ -45,8 +44,8 @@ export class UserController {
     status: 403,
     description: 'Forbidden: Only admins can register users',
   })
-  createCounsellar(@Body(ValidationPipe) createUserDto: CreateCounsellarDto) {
-    return this.userService.registerCounsellar(createUserDto);
+  createCounsellar(@Param('id') id: number) {
+    return this.userService.approveCounsellarById(+id);
   }
 
   @Post('/register-device-owner')

@@ -41,6 +41,11 @@ export class RequestedCounsellarController {
       properties: {
         firstName: { type: 'string', example: 'John' },
         lastName: { type: 'string', example: 'Doe' },
+        endTime: { type: 'string', example: '12:00' },
+        expertise: { type: 'string', example: 'Agriculture specialist' },
+        startTime: { type: 'string', example: '10:00' },
+        workingDays: { type: 'string', example: '1,2,3,4' },
+        yoe: { type: 'string', example: '11' },
         email: { type: 'string', example: 'john@example.com' },
         resume: {
           type: 'string',
@@ -49,24 +54,37 @@ export class RequestedCounsellarController {
       },
     },
   })
-  @ApiResponse({ status: 201, description: 'Registration request submitted successfully' })
-  @ApiResponse({ status: 400, description: 'Email already registered or Resume upload failed' })
+  @ApiResponse({
+    status: 201,
+    description: 'Registration request submitted successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Email already registered or Resume upload failed',
+  })
   @UseInterceptors(FileInterceptor('resume'))
-  create(
-    @UploadedFile() resume: Express.Multer.File,
-    @Body() body: any, 
-  ) {
+  create(@UploadedFile() resume: Express.Multer.File, @Body() body: any) {
     if (!body || Object.keys(body).length === 0) {
-      throw new Error('Body is undefined, ensure you are sending form-data correctly.');
+      throw new Error(
+        'Body is undefined, ensure you are sending form-data correctly.',
+      );
     }
 
     const createRequestedCounsellarDto: CreateRequestedCounsellarDto = {
       firstName: body.firstName,
       lastName: body.lastName,
       email: body.email,
+      endTime: body.endTime,
+      expertise: body.expertise,
+      startTime: body.startTime,
+      workingDays: body.workingDays,
+      yoe: body.yoe,
     };
 
-    return this.requestedCounsellarService.create(resume, createRequestedCounsellarDto);
+    return this.requestedCounsellarService.create(
+      resume,
+      createRequestedCounsellarDto,
+    );
   }
 
   @Delete(':id')
@@ -87,13 +105,23 @@ export class RequestedCounsellarController {
   }
 
   @Get('/listing')
-  // @UseGuards(new RoleGuard(CONSTANTS.ROLE.ADMIN))
+  @UseGuards(new RoleGuard(CONSTANTS.ROLE.ADMIN))
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get list of requested counsellors' })
-  // @ApiOperation({ summary: 'Get list of requested counsellors (Admin only)' })
+  @ApiOperation({ summary: 'Get list of requested counsellors (Admin only)' })
   @ApiResponse({ status: 200, description: 'List of requested counsellors' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   findAll(@Query() paginationQuery: PaginationQueryDto) {
     return this.requestedCounsellarService.findAll(paginationQuery);
+  }
+
+  @Get('/approved-counsellar-listing')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get list of requested counsellors' })
+  @ApiOperation({ summary: 'Get list of requested counsellors (Admin only)' })
+  @ApiResponse({ status: 200, description: 'List of requested counsellors' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  findAllApprovedCounsellars(@Query() paginationQuery: PaginationQueryDto) {
+    return this.requestedCounsellarService.findAllApprovedCounsellar(paginationQuery);
   }
 }

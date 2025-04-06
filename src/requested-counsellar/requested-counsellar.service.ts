@@ -21,13 +21,11 @@ export class RequestedCounsellarService {
     private readonly mailService: MailService,
   ) {}
 
- 
-
   async create(
     @UploadedFile() resume: Express.Multer.File,
     createRequestedCounsellarDto: CreateRequestedCounsellarDto,
   ) {
-    const { email, firstName, lastName } = createRequestedCounsellarDto;
+    const { email, firstName, lastName, expertise, yoe, endTime, startTime, workingDays} = createRequestedCounsellarDto;
      const existingUser = await this.requestedCounsellarRepository.findOne({
         where: { email },
       });
@@ -48,6 +46,12 @@ export class RequestedCounsellarService {
         firstName,
         lastName,
         resume: resumeUrl,
+        isApproved: false,
+        endTime,
+        expertise,
+        startTime,
+        workingDays,
+        yoe
       });
 
       await this.requestedCounsellarRepository.save(newUser);
@@ -63,11 +67,10 @@ export class RequestedCounsellarService {
         user: newUser,
       };
   }
-
   
   async remove(id: number) {
     const user = await this.requestedCounsellarRepository.findOne({
-      where: { id },
+      where: { id, isApproved : false },
     });
     if (!user) {
       throw new BadRequestException(`RequestedCounsellar with ID ${id} not found.`);
@@ -86,25 +89,6 @@ export class RequestedCounsellarService {
     }  
     return { message: 'RequestedCounsellar deleted successfully' };
   }
-  
-
-  async removeAfterRegisteration(email: string) {
-    const user = await this.requestedCounsellarRepository.findOne({
-      where: { email },
-    });
-  
-    if (!user) {
-      throw new BadRequestException(`RequestedCounsellar with email ${email} not found.`);
-    }
-  
-    const deleteResult = await this.requestedCounsellarRepository.delete(user.id);
-  
-    if (deleteResult.affected === 0) {
-      throw new BadRequestException(`Failed to delete RequestedCounsellar with email ${email}.`);
-    }
-    return { message: 'RequestedCounsellar deleted successfully' };
-  }
-  
 
   async find(email: string){
     return this.requestedCounsellarRepository.find({ where: {email} })
@@ -156,4 +140,58 @@ export class RequestedCounsellarService {
       );
     }
   }
+
+  async findAllApprovedCounsellar(paginationQuery: PaginationQueryDto) {
+    const { page = 1, limit = 10 } = paginationQuery;
+  
+    const currentPage = Math.max(1, page);
+    const take = Math.max(1, limit);
+    const skip = (currentPage - 1) * take;
+  
+    try {
+      const [counsellors, total] =
+        await this.requestedCounsellarRepository.findAndCount({
+          where: { isApproved: true },
+          relations: ['user'], 
+          skip,
+          take,
+        });
+  
+      const result = counsellors.map((counsellor) => ({
+        id: counsellor.id,
+        email: counsellor.email,
+        firstName: counsellor.firstName,
+        lastName: counsellor.lastName,
+        startTime: counsellor.startTime,
+        endTime: counsellor.endTime,
+        expertise: counsellor.expertise,
+        workingDays: counsellor.workingDays,
+        yoe: counsellor.yoe,
+        avatar: counsellor.user?.avatar || null, 
+      }));
+  
+      const pageCount = Math.ceil(total / take);
+      const hasNextPage = currentPage < pageCount;
+      const hasPrevPage = currentPage > 1;
+  
+      return {
+        metaData: {
+          totalCount: total,
+          pageCount,
+          page: currentPage,
+          take,
+          hasNextPage,
+          hasPrevPage,
+          itemCount: result.length,
+        },
+        data: result,
+      };
+    } catch (error) {
+      console.error('Error fetching approved counsellors:', error);
+      throw new InternalServerErrorException(
+        'Something went wrong while fetching approved counsellors.',
+      );
+    }
+  }
+  
 }

@@ -5,11 +5,13 @@ import { Comment } from 'src/feed/entities/comment.entity';
 import { Feed } from 'src/feed/entities/feed.entity';
 import { Reaction } from 'src/feed/entities/reaction.entity';
 import { Notification } from 'src/notifications/entities/notification.entity';
+import { RequestedCounsellar } from 'src/requested-counsellar/entities/requested-counsellar.entity';
 import {
   Column,
   Entity,
   ManyToMany,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -77,4 +79,7 @@ export class User {
 
   @OneToMany(() => Message, (message) => message.user)
   messages: Message[];
+
+  @OneToOne(() => RequestedCounsellar, (counsellor) => counsellor.user)
+  counsellorProfile: RequestedCounsellar;
 }

@@ -1,6 +1,7 @@
 import { IsNotEmpty, IsEmail } from 'class-validator';
 import { Appointment } from 'src/appointment/entities/appointment.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { User } from 'src/user/entities/user.entity';
+import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class RequestedCounsellar {
@@ -24,10 +25,6 @@ export class RequestedCounsellar {
   
   @Column()  
   @IsNotEmpty()
-  profilePic: string;
-  
-  @Column()  
-  @IsNotEmpty()
   yoe: string; //years of experience
   
   @Column()  
@@ -42,6 +39,14 @@ export class RequestedCounsellar {
 
   @Column({ nullable: true, default: '17:00' })  
   endTime: string;  //"14:00"
+
+  
+  @Column({ default: false })
+  isApproved: boolean; 
+  
+  @OneToOne(() => User, { nullable: true })
+  @JoinColumn()
+  user: User;
 
   @OneToMany(() => Appointment, (appointment) => appointment.counselor)
   appointments: Appointment[];
