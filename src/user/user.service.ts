@@ -30,9 +30,10 @@ export class UserService {
   ) {}
 
   private generateRandomPassword(length = 10): string {
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+    const chars =
+      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
     return Array.from({ length }, () =>
-      chars.charAt(Math.floor(Math.random() * chars.length))
+      chars.charAt(Math.floor(Math.random() * chars.length)),
     ).join('');
   }
 
@@ -96,7 +97,7 @@ export class UserService {
         where: searchFilters.length ? searchFilters : undefined,
         skip,
         take,
-        select: ['id', 'email', 'firstName', 'deviceId', 'role', 'createdAt'],
+        select: ['id', 'email', 'firstName', 'deviceId', 'role', 'createdAt', 'lastName'],
       });
 
       const pageCount = Math.ceil(total / take);
@@ -131,7 +132,18 @@ export class UserService {
   }
 
   findById(id: number) {
-    return this.userRepository.findOne({ where: { id: id }, select: ['avatar','firstName', 'id', 'email', 'role'] });
+    return this.userRepository.findOne({
+      where: { id: id },
+      select: [
+        'avatar',
+        'firstName',
+        'id',
+        'email',
+        'role',
+        'deviceId',
+        'lastName',
+      ],
+    });
   }
 
   async findByIdForNotification(id: number) {
@@ -159,14 +171,15 @@ export class UserService {
     return this.userRepository.findOne({ where: { deviceId: id } });
   }
 
-  
   async approveCounsellarById(id: number) {
     const counsellar = await this.counsellarRepository.findOne({
       where: { id },
     });
 
     if (!counsellar) {
-      throw new BadRequestException(`RequestedCounsellar with ID ${id} not found.`);
+      throw new BadRequestException(
+        `RequestedCounsellar with ID ${id} not found.`,
+      );
     }
 
     if (counsellar.isApproved) {
@@ -247,7 +260,32 @@ export class UserService {
     return await this.userRepository.save(newUser);
   }
 
-  async findUserByIds(userIds: Number[]){
+  async findUserByIds(userIds: Number[]) {
     return await this.userRepository.findByIds(userIds);
+  }
+
+  async changePassword(
+    userId: number,
+    oldPassword: string,
+    newPassword: string,
+  ) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      select: ['id', 'password'],
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      throw new BadRequestException('Old password is incorrect');
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    await this.userRepository.update(userId, { password: hashedNewPassword });
+
+    return { message: 'Password updated successfully' };
   }
 }

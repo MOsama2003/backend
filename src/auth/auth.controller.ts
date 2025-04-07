@@ -4,7 +4,13 @@ import { AuthGuard } from '@nestjs/passport';
 import { User } from '../user/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { LoginUserDto } from './dto/login-user-dto';
 import {
   ForgotPasswordUserDto,
@@ -68,9 +74,29 @@ export class AuthController {
     }
     return {
       access_token: accessToken,
-      refresh_token: refreshToken,
-      user,
+      refresh_token: refreshToken
     };
+  }
+
+  @Post('/logout')
+  @ApiOperation({ summary: 'Logout the currently logged-in user' })
+  @ApiResponse({ status: 200, description: 'Successfully logged out.' })
+  @ApiBearerAuth()
+  async logout(@Req() req) {
+    const user: User = req.user;
+    console.log(req.user, 'logoutlogoutlogoutlogoutlogoutlogout')
+    await this.userRepository.update(user.id, {
+      refreshToken: '',
+      fcmToken: '',
+    });
+
+    if (user.fcmToken) {
+      await this.notificationService.unsubscribeFromGlobalNotifications(
+        user.fcmToken,
+      );
+    }
+
+    return { message: 'Logout successful' };
   }
 
   @Post('/forgot-password')
