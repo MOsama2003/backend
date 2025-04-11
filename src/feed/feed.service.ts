@@ -177,6 +177,7 @@ export class FeedService {
 
       const [feed, total] = await this.feedRepository.findAndCount({
         where: searchFilters.length ? searchFilters : undefined,
+        order: { publishedDate: 'DESC' },
         skip,
         take,
         relations: ['comment', 'reaction', 'reaction.user', 'publisher'], // Load user in reaction
