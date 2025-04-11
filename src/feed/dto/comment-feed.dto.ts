@@ -77,7 +77,7 @@ export class CommentListingDto {
 
   @ApiProperty({
     description: 'ID of the post for which comments are being fetched',
-    example: 123,
+    example: 1,
   })
   @IsNotEmpty()
   @IsInt()

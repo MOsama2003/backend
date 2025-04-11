@@ -165,6 +165,13 @@ export class FeedService {
     return await this.commentRepository.save(newComment);
   }
 
+  async feed(id : string){
+    return await this.feedRepository.findOne({
+      where: { id : +id },
+      relations: ['publisher']
+    })
+  }
+
   async feedListing(paginationQueryDto: PaginationQueryDto, req: any) {
     const { page = 1, limit = 10, search = '' } = paginationQueryDto;
 
@@ -180,7 +187,7 @@ export class FeedService {
         order: { publishedDate: 'DESC' },
         skip,
         take,
-        relations: ['comment', 'reaction', 'reaction.user', 'publisher'], // Load user in reaction
+        relations: ['comment', 'reaction', 'reaction.user', 'publisher'],
       });
 
       const processedFeed = feed.map((post) => ({
@@ -210,6 +217,7 @@ export class FeedService {
           id: post.publisher.id,
           name: `${post.publisher.firstName} ${post.publisher.lastName}`,
           profilePic: post.publisher.avatar,
+          email: post.publisher.email
         },
       }));
 
@@ -238,7 +246,6 @@ export class FeedService {
 
   async commentListing(commentListingDto: CommentListingDto) {
     const { page = 1, limit = 10, parentCommentId, postId } = commentListingDto;
-
     try {
       const currentPage = Math.max(1, page);
       const take = Math.max(1, limit);

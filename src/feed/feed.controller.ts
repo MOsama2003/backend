@@ -82,6 +82,12 @@ export class FeedController {
     return this.feedService.deletePost(id);
   }
 
+  @Get(':id')
+  @ApiBearerAuth()
+  async feed(@Param('id') id: number){
+    return this.feedService.feed(String(id));
+  }
+
   @Post('/reaction')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Post Reaction' })
