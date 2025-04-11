@@ -25,7 +25,6 @@ export class UserService {
     @InjectRepository(RequestedCounsellar)
     private readonly counsellarRepository: Repository<RequestedCounsellar>,
     private readonly cloudinaryService: CloudinaryService,
-    private readonly requestedUserService: RequestedCounsellarService,
     private readonly mailService: MailService,
   ) {}
 
@@ -38,7 +37,7 @@ export class UserService {
   }
 
   async create(createUserDto: CreateUserDto) {
-    const { email, deviceId, password } = createUserDto;
+    const { email, deviceId } = createUserDto;
     try {
       const existingUser = await this.userRepository.findOne({
         where: [{ email }, { deviceId }],
@@ -47,17 +46,18 @@ export class UserService {
         throw new BadRequestException('Email or Device Id already registered!');
       }
 
-      const hashedPassword = await bcrypt.hash(password, 10);
+      const randomPassword = this.generateRandomPassword();
+      const password = await bcrypt.hash(randomPassword, 10);
 
       const newUser = this.userRepository.create({
         ...createUserDto,
         role: CONSTANTS.ROLE.FARMER,
-        password: hashedPassword,
+        password,
         createdAt: String(new Date().toISOString()),
       });
 
       await this.mailService
-        .sendWelcomeEmail(newUser.email, newUser.firstName)
+        .sendWelcomeEmail(newUser.email, newUser.firstName, password)
         .catch((err) =>
           console.error(`Error sending welcome email: ${err.message}`),
         );
@@ -97,7 +97,16 @@ export class UserService {
         where: searchFilters.length ? searchFilters : undefined,
         skip,
         take,
-        select: ['id', 'email', 'firstName', 'deviceId', 'role', 'createdAt', 'lastName'],
+        select: [
+          'id',
+          'email',
+          'firstName',
+          'deviceId',
+          'role',
+          'createdAt',
+          'lastName',
+          'disabled'
+        ],
       });
 
       const pageCount = Math.ceil(total / take);
@@ -127,7 +136,7 @@ export class UserService {
   async softDeleteUser(id: string) {
     const user = await this.userRepository.findOne({ where: { id: +id } });
     if (!user) throw new NotFoundException('User not found');
-    user.disabled = true;
+    user.disabled = !user.disabled;
     return this.userRepository.save(user);
   }
 
@@ -252,7 +261,7 @@ export class UserService {
     });
 
     await this.mailService
-      .sendWelcomeEmail(newUser.email, newUser.firstName)
+      .sendWelcomeEmailNonDevice(newUser.email, newUser.firstName)
       .catch((err) =>
         console.error(`Error sending welcome email: ${err.message}`),
       );

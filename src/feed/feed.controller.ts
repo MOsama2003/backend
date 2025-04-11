@@ -76,6 +76,12 @@ export class FeedController {
     return this.feedService.feedListing(paginationQuery, req)
   }
 
+  @Delete(':id')
+  @ApiBearerAuth()
+  async deletePost(@Param('id') id: number): Promise<void> {
+    return this.feedService.deletePost(id);
+  }
+
   @Post('/reaction')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Post Reaction' })

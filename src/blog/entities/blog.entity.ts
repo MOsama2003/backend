@@ -22,13 +22,6 @@ export class Blog {
   @IsString()
   articleTitle: string;
 
-  @Column("text", { array: true }) 
-  @IsArray()
-  @IsNotEmpty()
-  @ArrayMaxSize(5) 
-  @IsString({ each: true })
-  articleKeyword: string[];
-
   @Column()
   articlePublishDate: string;
 

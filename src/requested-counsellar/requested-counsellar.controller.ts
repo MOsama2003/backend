@@ -115,6 +115,12 @@ export class RequestedCounsellarController {
     return this.requestedCounsellarService.findAll(paginationQuery);
   }
 
+  @Get(':id')
+  @ApiBearerAuth()
+  findCounsellar(@Param('id') id : string) {
+    return this.requestedCounsellarService.findCounsellarById(+id);
+  }
+
   @Get('/approved-counsellar-listing')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get list of requested counsellors' })

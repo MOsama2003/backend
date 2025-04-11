@@ -64,6 +64,18 @@ export class FeedService {
     };
   }
 
+  async deletePost(id: number): Promise<void> {
+    const post = await this.feedRepository.findOne({
+      where: { id },
+      relations: ['reaction', 'comment'],
+    });
+
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+    await this.feedRepository.remove(post);
+  }
+
   async reaction(createReactionDto: CreateReactionDto, req: any) {
     const { postId, reactionType } = createReactionDto;
     const post = await this.feedRepository.findOne({

@@ -15,11 +15,6 @@ export class CreateUserDto {
   @IsNotEmpty()
   email: string;
 
-  @ApiProperty({ description: 'Password for the user account' })
-  @IsString()
-  @IsNotEmpty()
-  password: string;
-
   @ApiProperty({ description: 'Unique device ID associated with the user' })
   @IsString()
   @IsNotEmpty()

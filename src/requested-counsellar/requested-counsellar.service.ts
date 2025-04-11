@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
   UploadedFile,
 } from '@nestjs/common';
 import { CreateRequestedCounsellarDto } from './dto/create-requested-counsellar.dto';
@@ -25,60 +26,73 @@ export class RequestedCounsellarService {
     @UploadedFile() resume: Express.Multer.File,
     createRequestedCounsellarDto: CreateRequestedCounsellarDto,
   ) {
-    const { email, firstName, lastName, expertise, yoe, endTime, startTime, workingDays} = createRequestedCounsellarDto;
-     const existingUser = await this.requestedCounsellarRepository.findOne({
-        where: { email },
-      });
-      if (existingUser) {
-        throw new BadRequestException('Email already registered!');
+    const {
+      email,
+      firstName,
+      lastName,
+      expertise,
+      yoe,
+      endTime,
+      startTime,
+      workingDays,
+    } = createRequestedCounsellarDto;
+    const existingUser = await this.requestedCounsellarRepository.findOne({
+      where: { email },
+    });
+    if (existingUser) {
+      throw new BadRequestException('Email already registered!');
+    }
+
+    let resumeUrl = '';
+    if (resume) {
+      const uploadedResume = await this.cloudinaryService.uploadFile(resume);
+      if (!uploadedResume) {
+        throw new BadRequestException('Resume upload failed');
       }
+      resumeUrl = uploadedResume.url;
+    }
+    const newUser = this.requestedCounsellarRepository.create({
+      email,
+      firstName,
+      lastName,
+      resume: resumeUrl,
+      isApproved: false,
+      endTime,
+      expertise,
+      startTime,
+      workingDays,
+      yoe,
+    });
 
-      let resumeUrl = '';
-      if (resume) {
-        const uploadedResume = await this.cloudinaryService.uploadFile(resume);
-        if (!uploadedResume) {
-          throw new BadRequestException('Resume upload failed');
-        }
-        resumeUrl = uploadedResume.url;
-      }
-      const newUser = this.requestedCounsellarRepository.create({
-        email,
-        firstName,
-        lastName,
-        resume: resumeUrl,
-        isApproved: false,
-        endTime,
-        expertise,
-        startTime,
-        workingDays,
-        yoe
-      });
+    await this.requestedCounsellarRepository.save(newUser);
 
-      await this.requestedCounsellarRepository.save(newUser);
+    await this.mailService
+      .sendMailToRequestedCounsellar(newUser.email, newUser.firstName)
+      .catch((err) =>
+        console.error(`Error sending welcome email: ${err.message}`),
+      );
 
-      await this.mailService
-        .sendMailToRequestedCounsellar(newUser.email, newUser.firstName)
-        .catch((err) =>
-          console.error(`Error sending welcome email: ${err.message}`),
-        );
-
-      return {
-        message: 'Registration request submitted successfully',
-        user: newUser,
-      };
+    return {
+      message: 'Registration request submitted successfully',
+      user: newUser,
+    };
   }
-  
+
   async remove(id: number) {
     const user = await this.requestedCounsellarRepository.findOne({
-      where: { id, isApproved : false },
+      where: { id, isApproved: false },
     });
     if (!user) {
-      throw new BadRequestException(`RequestedCounsellar with ID ${id} not found.`);
+      throw new BadRequestException(
+        `RequestedCounsellar with ID ${id} not found.`,
+      );
     }
 
     const deleteResult = await this.requestedCounsellarRepository.delete(id);
     if (deleteResult.affected === 0) {
-      throw new BadRequestException(`Failed to delete RequestedCounsellar with ID ${id}.`);
+      throw new BadRequestException(
+        `Failed to delete RequestedCounsellar with ID ${id}.`,
+      );
     }
     if (user.email) {
       await this.mailService
@@ -86,12 +100,33 @@ export class RequestedCounsellarService {
         .catch((err) =>
           console.error(`Error sending rejection email: ${err.message}`),
         );
-    }  
+    }
     return { message: 'RequestedCounsellar deleted successfully' };
   }
 
-  async find(email: string){
-    return this.requestedCounsellarRepository.find({ where: {email} })
+  async findCounsellarById(id: number) {
+    try {
+      const counsellor = await this.requestedCounsellarRepository.findOne({
+        where: { id },
+      });
+
+      if (!counsellor) {
+        throw new NotFoundException(
+          `Requested Counsellor with id ${id} not found.`,
+        );
+      }
+
+      return counsellor;
+    } catch (error) {
+      console.error(`Error fetching Requested Counsellor by id ${id}:`, error);
+      throw new InternalServerErrorException(
+        'Something went wrong while fetching the Requested Counsellor.',
+      );
+    }
+  }
+
+  async find(email: string) {
+    return this.requestedCounsellarRepository.find({ where: { email } });
   }
 
   async findAll(paginationQuery: PaginationQueryDto) {
@@ -103,10 +138,7 @@ export class RequestedCounsellarService {
       const skip = (currentPage - 1) * take;
 
       const searchFilters = search
-        ? [
-            { email: ILike(`%${search}%`) },
-            { firstName: ILike(`%${search}%`) },
-          ]
+        ? [{ email: ILike(`%${search}%`) }, { firstName: ILike(`%${search}%`) }]
         : [];
 
       const [users, total] =
@@ -114,7 +146,15 @@ export class RequestedCounsellarService {
           where: searchFilters.length ? searchFilters : undefined,
           skip,
           take,
-          select: [ 'id' ,'email', 'firstName', 'lastName', 'resume'],
+          select: [
+            'id',
+            'email',
+            'firstName',
+            'lastName',
+            'isApproved',
+            'expertise',
+            'yoe',
+          ],
         });
 
       const pageCount = Math.ceil(total / take);
@@ -143,20 +183,20 @@ export class RequestedCounsellarService {
 
   async findAllApprovedCounsellar(paginationQuery: PaginationQueryDto) {
     const { page = 1, limit = 10 } = paginationQuery;
-  
+
     const currentPage = Math.max(1, page);
     const take = Math.max(1, limit);
     const skip = (currentPage - 1) * take;
-  
+
     try {
       const [counsellors, total] =
         await this.requestedCounsellarRepository.findAndCount({
           where: { isApproved: true },
-          relations: ['user'], 
+          relations: ['user'],
           skip,
           take,
         });
-  
+
       const result = counsellors.map((counsellor) => ({
         id: counsellor.id,
         email: counsellor.email,
@@ -167,13 +207,13 @@ export class RequestedCounsellarService {
         expertise: counsellor.expertise,
         workingDays: counsellor.workingDays,
         yoe: counsellor.yoe,
-        avatar: counsellor.user?.avatar || null, 
+        avatar: counsellor.user?.avatar || null,
       }));
-  
+
       const pageCount = Math.ceil(total / take);
       const hasNextPage = currentPage < pageCount;
       const hasPrevPage = currentPage > 1;
-  
+
       return {
         metaData: {
           totalCount: total,
@@ -193,5 +233,4 @@ export class RequestedCounsellarService {
       );
     }
   }
-  
 }

@@ -22,12 +22,52 @@ export class BlogService {
     private readonly notificationService: FirebaseService
   ) {}
 
+  async update(
+    id: number,
+    updateBlogDto: CreateBlogDto,
+    @UploadedFile() newImage?: Express.Multer.File,
+    req?: any
+  ) {
+    const blog = await this.blogRepository.findOne({ where: { id } });
+  
+    if (!blog) {
+      throw new BadRequestException('Blog not found.');
+    }
+  
+    const { articleContent, articleTitle } = updateBlogDto;
+  
+    let updatedImage = blog.articleImage;
+  
+    if (newImage) {
+      const uploaded = await this.cloudinaryService.uploadFile(newImage);
+      if (!uploaded || !uploaded.url) {
+        throw new BadRequestException('Image upload failed');
+      }
+      updatedImage = uploaded.url;
+    }
+  
+    const updatedArticle = {
+      ...blog,
+      articleContent: articleContent ?? blog.articleContent,
+      articleTitle: articleTitle ?? blog.articleTitle,
+      articleImage: updatedImage,
+      user: req?.user ?? blog.user,
+    };
+  
+    await this.blogRepository.save(updatedArticle);
+  
+    return {
+      message: 'Blog updated successfully!',
+      article: updatedArticle,
+    };
+  }
+
   async create(
     @UploadedFile() articleImage: Express.Multer.File,
     createBlogDto: CreateBlogDto,
     req : any,
   ) {
-    const { articleContent, articleKeyword, articleTitle } = createBlogDto;
+    const { articleContent, articleTitle } = createBlogDto;
     let Image = '';
     if (articleImage) {
       const articleImageURL =
@@ -40,7 +80,6 @@ export class BlogService {
     const article = await this.blogRepository.create({
       articleContent,
       articleImage: Image,
-      articleKeyword,
       articlePublishDate: String(new Date().toISOString()),
       user: req.user,
       articleTitle,
@@ -51,7 +90,7 @@ export class BlogService {
     await this.notificationService.sendGlobalNotification({
       title: 'New Article Added',
       body: `${articleTitle} is added`,
-      data: { articleId: article.id }, 
+      data: {articleId : String(article.id)}, 
     });
     
     return {
@@ -71,7 +110,6 @@ export class BlogService {
       const searchFilters = search
         ? [
             { articleTitle: ILike(`%${search}%`) },
-            { articleKeyword: ILike(`%${search}%`) },
           ]
         : [];
 
@@ -85,7 +123,6 @@ export class BlogService {
           'articleTitle',
           'articleContent',
           'articleImage',
-          'articleKeyword',
           'user',
           'articlePublishDate',
         ],

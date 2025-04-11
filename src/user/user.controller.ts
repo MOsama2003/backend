@@ -37,7 +37,7 @@ import { ChangePasswordDto } from './dto/changePasswordDto';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Patch('/register-counsellar/:id')
+  @Post('/register-counsellar/:id')
   @UseGuards(new RoleGuard(CONSTANTS.ROLE.ADMIN))
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Register a new user (Admin only)' })
@@ -112,7 +112,7 @@ export class UserController {
     return this.userService.findById(+req.user.id);
   }
 
-  @Patch('/disabled-user/:id')
+  @Patch('/change-status-user/:id')
   @ApiBearerAuth()
   @UseGuards(new RoleGuard(CONSTANTS.ROLE.ADMIN))
   @ApiOperation({ summary: 'Disable user by deviceId (Admin only)' })

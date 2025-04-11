@@ -1,7 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  ArrayMaxSize,
-  IsArray,
   IsNotEmpty,
   IsString,
 } from 'class-validator';
@@ -16,10 +14,4 @@ export class CreateBlogDto {
   @IsString()
   @IsNotEmpty()
   articleContent: string;
-
-  @IsArray()
-  @IsNotEmpty()
-  @ArrayMaxSize(5)
-  @IsString({ each: true })
-  articleKeyword: string[];
 }

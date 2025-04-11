@@ -31,7 +31,6 @@ export class BlogController {
   constructor(private readonly blogService: BlogService) {}
 
   @Post()
-  @UseGuards(new RoleGuard(CONSTANTS.ROLE.COUNSELLAR))
   @ApiOperation({ summary: 'Write Article ( Counsellar only )' })
   @ApiConsumes('multipart/form-data')
   @ApiBearerAuth()
@@ -41,7 +40,6 @@ export class BlogController {
       properties: {
         articleContent: { type: 'string' },
         articleTitle: { type: 'string' },
-        articleKeyword: { type: 'string[]' },
         articleImage: {
           type: 'string',
           format: 'binary',
@@ -65,9 +63,47 @@ export class BlogController {
     const createBlogDto: CreateBlogDto = {
       articleContent: body.articleContent,
       articleTitle: body.articleTitle,
-      articleKeyword: body.articleKeyword,
     };
     return this.blogService.create(articleImage, createBlogDto, req);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Edit Article (Counsellar only)' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBearerAuth()
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        articleContent: { type: 'string' },
+        articleTitle: { type: 'string' },
+        articleImage: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 200, description: 'Article updated successfully' })
+  @UseInterceptors(FileInterceptor('articleImage'))
+  async update(
+    @Param('id') id: number,
+    @Req() req,
+    @UploadedFile() articleImage: Express.Multer.File,
+    @Body() body: any,
+  ) {
+    if (!body || Object.keys(body).length === 0) {
+      throw new Error(
+        'Body is undefined, ensure you are sending form-data correctly.',
+      );
+    }
+
+    const updateBlogDto: CreateBlogDto = {
+      articleContent: body.articleContent,
+      articleTitle: body.articleTitle,
+    };
+
+    return this.blogService.update(id, updateBlogDto, articleImage, req);
   }
 
   @Get('/listing')
