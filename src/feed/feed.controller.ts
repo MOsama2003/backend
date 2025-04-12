@@ -97,13 +97,13 @@ export class FeedController {
     return this.feedService.reaction(createReactionDto, req)
   }
 
-  @Get('/comment-listing')
+  @Get('/comment-listing/:postId')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get list of Comments' })
   @ApiResponse({ status: 200, description: 'List of Comments' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  commentLisitng(@Query() commentListing: CommentListingDto) {
-    return this.feedService.commentListing(commentListing)
+  commentLisitng(@Query() commentListing: CommentListingDto, @Param('postId') postId : number) {
+    return this.feedService.commentListing(commentListing, postId)
   }
 
   @Post('/comment')

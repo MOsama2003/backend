@@ -74,12 +74,4 @@ export class CommentListingDto {
   @IsOptional()
   @IsString()
   parentCommentId?: string | null;
-
-  @ApiProperty({
-    description: 'ID of the post for which comments are being fetched',
-    example: 1,
-  })
-  @IsNotEmpty()
-  @IsInt()
-  postId: number;
 }

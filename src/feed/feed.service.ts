@@ -244,9 +244,11 @@ export class FeedService {
     }
   }
 
-  async commentListing(commentListingDto: CommentListingDto) {
-    const { page = 1, limit = 10, parentCommentId, postId } = commentListingDto;
+  async commentListing(commentListingDto: CommentListingDto, postId: number) {
+    const { page = 1, limit = 10, parentCommentId } = commentListingDto;
     try {
+      console.log(commentListingDto, 'commentListingDtocommentListingDtocommentListingDto')
+      
       const currentPage = Math.max(1, page);
       const take = Math.max(1, limit);
       const skip = (currentPage - 1) * take;
@@ -258,7 +260,7 @@ export class FeedService {
       if (!commentedPost) {
         throw new BadRequestException('Invalid Post ID!');
       }
-      const whereCondition: any = { post: { id: commentedPost.id } };
+      const whereCondition: any = { post: { id: Number(commentedPost.id) } };
       if (parentCommentId !== undefined) {
         whereCondition.parentComment =
           parentCommentId !== null ? { id: Number(parentCommentId) } : IsNull();
