@@ -32,8 +32,4 @@ export class Comment {
 
   @ManyToOne(() => Feed, (feed) => feed.reaction, { onDelete: 'CASCADE' })
   post: Feed;
-
-  @ManyToMany(() => User, {nullable : true})
-  @JoinTable()
-  mentions: User[];
 }

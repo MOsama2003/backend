@@ -106,12 +106,12 @@ export class FeedController {
     return this.feedService.commentListing(commentListing, postId)
   }
 
-  @Post('/comment')
+  @Post('/comment/:postId')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Comment on Post' })
   @ApiResponse({ status: 200, description: 'Comment to the Post' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  comment(@Body() createCommentDto: CreateCommentDto, @Req() req ) {
-    return this.feedService.createComment(createCommentDto, req)
+  comment(@Body() createCommentDto: CreateCommentDto, @Req() req : any, @Param('postId') postId : number) {
+    return this.feedService.createComment(createCommentDto, req, +postId)
   }
 }

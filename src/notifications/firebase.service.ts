@@ -34,7 +34,7 @@ export class FirebaseService implements OnModuleInit {
     const user = await this.userService.findByIdForNotification(+userId);
 
     if (!user || !user.fcmToken) {
-      throw new BadRequestException('No User Exists!');
+      return;
     }
 
     const message = {
