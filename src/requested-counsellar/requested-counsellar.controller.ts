@@ -115,11 +115,6 @@ export class RequestedCounsellarController {
     return this.requestedCounsellarService.findAll(paginationQuery);
   }
 
-  @Get(':id')
-  @ApiBearerAuth()
-  findCounsellar(@Param('id') id : string) {
-    return this.requestedCounsellarService.findCounsellarById(+id);
-  }
 
   @Get('/approved-counsellar-listing')
   @ApiBearerAuth()
@@ -129,5 +124,11 @@ export class RequestedCounsellarController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   findAllApprovedCounsellars(@Query() paginationQuery: PaginationQueryDto) {
     return this.requestedCounsellarService.findAllApprovedCounsellar(paginationQuery);
+  }
+
+  @Get(':id')
+  @ApiBearerAuth()
+  findCounsellar(@Param('id') id : string) {
+    return this.requestedCounsellarService.findCounsellarById(+id);
   }
 }
