@@ -17,8 +17,9 @@ export class FirebaseService implements OnModuleInit {
   ) {}
   async onModuleInit() {
     const firebaseConfig = JSON.parse(
-      this.configService.get<string>('GOOGLE_APPLICATION_CREDENTIALS_JSON') || '{}',
-    );    
+      this.configService.get<string>('GOOGLE_APPLICATION_CREDENTIALS_JSON') ||
+        '{}',
+    );
 
     admin.initializeApp({
       credential: admin.credential.cert(firebaseConfig),
@@ -33,7 +34,7 @@ export class FirebaseService implements OnModuleInit {
     const user = await this.userService.findByIdForNotification(+userId);
 
     if (!user || !user.fcmToken) {
-      throw new BadRequestException('No User Exists!');
+      return;
     }
 
     const message = {
@@ -67,10 +68,16 @@ export class FirebaseService implements OnModuleInit {
 
     const message = {
       notification: { title, body },
-      topic: 'global_notifications', 
+      topic: 'global_notifications',
       data: data || {},
     };
 
     await admin.messaging().send(message);
+  }
+
+  async unsubscribeFromGlobalNotifications(fcmToken: string) {
+    await admin
+      .messaging()
+      .unsubscribeFromTopic([fcmToken], 'global_notifications');
   }
 }

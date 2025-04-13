@@ -3,6 +3,7 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateFeedDto } from './dto/create-feed.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -64,18 +65,37 @@ export class FeedService {
     };
   }
 
+  async deletePost(id: number): Promise<void> {
+    const post = await this.feedRepository.findOne({
+      where: { id },
+      relations: ['reaction', 'comment'],
+    });
+
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+    await this.feedRepository.remove(post);
+  }
+
   async reaction(createReactionDto: CreateReactionDto, req: any) {
     const { postId, reactionType } = createReactionDto;
     const post = await this.feedRepository.findOne({
       where: { id: Number(postId) },
+      relations: ['publisher']
     });
     if (!post) {
       throw new NotFoundException('Post not found');
     }
-    const existingReaction = await this.reactionRepository.findOne({
-      where: { user: req.user, post: post },
-    });
+    
 
+    const existingReaction = await this.reactionRepository.findOne({
+      where: {
+        user: { id: req.user.id },
+        post: { id: post.id },
+      },
+      relations: ['user', 'post'], 
+    });
+    
     if (existingReaction) {
       if (existingReaction.status === reactionType) {
         await this.reactionRepository.remove(existingReaction);
@@ -98,7 +118,7 @@ export class FeedService {
       {
         title: 'New Reaction Added',
         body: `${req.user.name} reacted ${reactionType} to your post`,
-        data: { postId },
+        data: { postId: String(postId) },
       },
       +post.publisher.id,
     );
@@ -106,10 +126,12 @@ export class FeedService {
     return { message: `${reactionType} added successfully` };
   }
 
-  async createComment(createCommentDto: CreateCommentDto, req: any) {
-    const { commentText, mentions, parentCommentId, postId } = createCommentDto;
+  async createComment(createCommentDto: CreateCommentDto, req: any, postId : number) {
+    const { commentText,  parentCommentId } = createCommentDto;
+    
     const post = await this.feedRepository.findOne({
       where: { id: Number(postId) },
+      relations: ['publisher']
     });
     if (!post) {
       throw new NotFoundException('Post not found');
@@ -125,13 +147,6 @@ export class FeedService {
       }
     }
 
-    let mentionedUsers: User[] = [];
-    if (mentions && mentions.length > 0) {
-      mentionedUsers = await this.userRepository.find({
-        where: { id: In(mentions) },
-      });
-    }
-
     let newComment = this.commentRepository.create({
       commentText,
       parentComment: parentComment === null ? undefined : parentComment,
@@ -139,18 +154,24 @@ export class FeedService {
       commentAuthor: req.user,
       publishedDate: new Date().toISOString(),
     });
-
-    newComment.mentions = mentionedUsers;
+  
     await this.notificationService.sendNotification(
       {
         title: 'New Comment Added to Your Post',
         body: `${req.user.name} commented: ${commentText}`,
-        data: { postId },
+        data: { postId: String(postId) },
       },
       +post.publisher.id,
     );
 
     return await this.commentRepository.save(newComment);
+  }
+
+  async feed(id : string){
+    return await this.feedRepository.findOne({
+      where: { id : +id },
+      relations: ['publisher']
+    })
   }
 
   async feedListing(paginationQueryDto: PaginationQueryDto, req: any) {
@@ -165,9 +186,10 @@ export class FeedService {
 
       const [feed, total] = await this.feedRepository.findAndCount({
         where: searchFilters.length ? searchFilters : undefined,
+        order: { publishedDate: 'DESC' },
         skip,
         take,
-        relations: ['comment', 'reaction', 'reaction.user', 'publisher'], // Load user in reaction
+        relations: ['comment', 'reaction', 'reaction.user', 'publisher'],
       });
 
       const processedFeed = feed.map((post) => ({
@@ -197,6 +219,7 @@ export class FeedService {
           id: post.publisher.id,
           name: `${post.publisher.firstName} ${post.publisher.lastName}`,
           profilePic: post.publisher.avatar,
+          email: post.publisher.email
         },
       }));
 
@@ -223,11 +246,10 @@ export class FeedService {
     }
   }
 
-  async commentListing(commentListingDto: CommentListingDto) {
-    const { page = 1, limit = 10, parentCommentId, postId } = commentListingDto;
-
+  async commentListing(commentListingDto: CommentListingDto, postId: number) {
+    const { page = 1, limit = 10, parentCommentId } = commentListingDto;
     try {
-      const currentPage = Math.max(1, page);
+     const currentPage = Math.max(1, page);
       const take = Math.max(1, limit);
       const skip = (currentPage - 1) * take;
 
@@ -238,7 +260,7 @@ export class FeedService {
       if (!commentedPost) {
         throw new BadRequestException('Invalid Post ID!');
       }
-      const whereCondition: any = { post: { id: commentedPost.id } };
+      const whereCondition: any = { post: { id: Number(commentedPost.id) } };
       if (parentCommentId !== undefined) {
         whereCondition.parentComment =
           parentCommentId !== null ? { id: Number(parentCommentId) } : IsNull();
@@ -251,7 +273,7 @@ export class FeedService {
         skip,
         take,
         relations: ['commentAuthor'],
-        select: ['id', 'commentText', 'mentions', 'publishedDate'],
+        select: ['id', 'commentText', 'publishedDate'],
       });
 
       // Fetch reply count for each comment
@@ -264,13 +286,11 @@ export class FeedService {
           return {
             id: comment.id,
             commentText: comment.commentText,
-            mentions: comment.mentions,
             parentCommentId: comment.parentComment
               ? comment.parentComment.id
               : null,
             publishedDate: comment.publishedDate,
             numberOfReplies: replyCount,
-            mention: comment.mentions,
             author: comment.commentAuthor
               ? {
                   id: comment.commentAuthor.id,

@@ -12,6 +12,7 @@ import {
   UseInterceptors,
   Req,
   BadRequestException,
+  Put,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -29,13 +30,14 @@ import {
 import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateNonDeviceOwnerDto } from './dto/create-non-device-owner.dto';
+import { ChangePasswordDto } from './dto/changePasswordDto';
 
 @ApiTags('User')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Patch('/register-counsellar/:id')
+  @Post('/register-counsellar/:id')
   @UseGuards(new RoleGuard(CONSTANTS.ROLE.ADMIN))
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Register a new user (Admin only)' })
@@ -58,7 +60,7 @@ export class UserController {
     description: 'Forbidden: Only admins can register users',
   })
   createDeviceOwner(@Body(ValidationPipe) createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto)
+    return this.userService.create(createUserDto);
   }
 
   @Post('/register-non-device-owner')
@@ -101,7 +103,16 @@ export class UserController {
     return this.userService.findAll(paginationQuery);
   }
 
-  @Patch('/disabled-user/:id')
+  
+  @Get('/profile')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get any user using Id' })
+  @ApiResponse({ status: 200, description: 'Users fetched successfully' })
+  async findUserById(@Req() req : any) {
+    return this.userService.findById(+req.user.id);
+  }
+
+  @Patch('/change-status-user/:id')
   @ApiBearerAuth()
   @UseGuards(new RoleGuard(CONSTANTS.ROLE.ADMIN))
   @ApiOperation({ summary: 'Disable user by deviceId (Admin only)' })
@@ -121,7 +132,7 @@ export class UserController {
     return this.userService.softDeleteUser(id);
   }
 
-  @Post('avatar')
+  @Patch('avatar')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Set user avatar' })
   @ApiConsumes('multipart/form-data') // 🔹 Enable file upload
@@ -144,5 +155,15 @@ export class UserController {
       throw new BadRequestException('No file provided');
     }
     return this.userService.setAvatar(req.user.id, file);
+  }
+
+  
+  @Put('change-password')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Change user password' })
+  @ApiResponse({ status: 200, description: 'Password updated successfully' })
+  @ApiResponse({ status: 400, description: 'Old password is incorrect' })
+  async changePassword(@Req() req, @Body() body: ChangePasswordDto) {
+    return this.userService.changePassword(req.user.id, body.oldPassword, body.newPassword);
   }
 }

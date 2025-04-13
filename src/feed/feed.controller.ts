@@ -76,6 +76,18 @@ export class FeedController {
     return this.feedService.feedListing(paginationQuery, req)
   }
 
+  @Delete(':id')
+  @ApiBearerAuth()
+  async deletePost(@Param('id') id: number): Promise<void> {
+    return this.feedService.deletePost(id);
+  }
+
+  @Get(':id')
+  @ApiBearerAuth()
+  async feed(@Param('id') id: number){
+    return this.feedService.feed(String(id));
+  }
+
   @Post('/reaction')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Post Reaction' })
@@ -85,21 +97,21 @@ export class FeedController {
     return this.feedService.reaction(createReactionDto, req)
   }
 
-  @Get('/comment-listing')
+  @Get('/comment-listing/:postId')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get list of Comments' })
   @ApiResponse({ status: 200, description: 'List of Comments' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  commentLisitng(@Query() commentListing: CommentListingDto) {
-    return this.feedService.commentListing(commentListing)
+  commentLisitng(@Query() commentListing: CommentListingDto, @Param('postId') postId : number) {
+    return this.feedService.commentListing(commentListing, postId)
   }
 
-  @Post('/comment')
+  @Post('/comment/:postId')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Comment on Post' })
   @ApiResponse({ status: 200, description: 'Comment to the Post' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  comment(@Body() createCommentDto: CreateCommentDto, @Req() req ) {
-    return this.feedService.createComment(createCommentDto, req)
+  comment(@Body() createCommentDto: CreateCommentDto, @Req() req : any, @Param('postId') postId : number) {
+    return this.feedService.createComment(createCommentDto, req, +postId)
   }
 }

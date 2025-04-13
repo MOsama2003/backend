@@ -25,19 +25,19 @@ export class UserService {
     @InjectRepository(RequestedCounsellar)
     private readonly counsellarRepository: Repository<RequestedCounsellar>,
     private readonly cloudinaryService: CloudinaryService,
-    private readonly requestedUserService: RequestedCounsellarService,
     private readonly mailService: MailService,
   ) {}
 
   private generateRandomPassword(length = 10): string {
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+    const chars =
+      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
     return Array.from({ length }, () =>
-      chars.charAt(Math.floor(Math.random() * chars.length))
+      chars.charAt(Math.floor(Math.random() * chars.length)),
     ).join('');
   }
 
   async create(createUserDto: CreateUserDto) {
-    const { email, deviceId, password } = createUserDto;
+    const { email, deviceId } = createUserDto;
     try {
       const existingUser = await this.userRepository.findOne({
         where: [{ email }, { deviceId }],
@@ -46,17 +46,18 @@ export class UserService {
         throw new BadRequestException('Email or Device Id already registered!');
       }
 
-      const hashedPassword = await bcrypt.hash(password, 10);
+      const randomPassword = this.generateRandomPassword();
+      const password = await bcrypt.hash(randomPassword, 10);
 
       const newUser = this.userRepository.create({
         ...createUserDto,
         role: CONSTANTS.ROLE.FARMER,
-        password: hashedPassword,
+        password,
         createdAt: String(new Date().toISOString()),
       });
 
       await this.mailService
-        .sendWelcomeEmail(newUser.email, newUser.firstName)
+        .sendWelcomeEmail(newUser.email, newUser.firstName, password)
         .catch((err) =>
           console.error(`Error sending welcome email: ${err.message}`),
         );
@@ -96,7 +97,16 @@ export class UserService {
         where: searchFilters.length ? searchFilters : undefined,
         skip,
         take,
-        select: ['id', 'email', 'firstName', 'deviceId', 'role', 'createdAt'],
+        select: [
+          'id',
+          'email',
+          'firstName',
+          'deviceId',
+          'role',
+          'createdAt',
+          'lastName',
+          'disabled'
+        ],
       });
 
       const pageCount = Math.ceil(total / take);
@@ -126,12 +136,23 @@ export class UserService {
   async softDeleteUser(id: string) {
     const user = await this.userRepository.findOne({ where: { id: +id } });
     if (!user) throw new NotFoundException('User not found');
-    user.disabled = true;
+    user.disabled = !user.disabled;
     return this.userRepository.save(user);
   }
 
   findById(id: number) {
-    return this.userRepository.findOne({ where: { id: id }, select: ['avatar','firstName', 'id', 'email', 'role'] });
+    return this.userRepository.findOne({
+      where: { id: id },
+      select: [
+        'avatar',
+        'firstName',
+        'id',
+        'email',
+        'role',
+        'deviceId',
+        'lastName',
+      ],
+    });
   }
 
   async findByIdForNotification(id: number) {
@@ -159,14 +180,15 @@ export class UserService {
     return this.userRepository.findOne({ where: { deviceId: id } });
   }
 
-  
   async approveCounsellarById(id: number) {
     const counsellar = await this.counsellarRepository.findOne({
       where: { id },
     });
 
     if (!counsellar) {
-      throw new BadRequestException(`RequestedCounsellar with ID ${id} not found.`);
+      throw new BadRequestException(
+        `RequestedCounsellar with ID ${id} not found.`,
+      );
     }
 
     if (counsellar.isApproved) {
@@ -239,7 +261,7 @@ export class UserService {
     });
 
     await this.mailService
-      .sendWelcomeEmail(newUser.email, newUser.firstName)
+      .sendWelcomeEmailNonDevice(newUser.email, newUser.firstName)
       .catch((err) =>
         console.error(`Error sending welcome email: ${err.message}`),
       );
@@ -247,7 +269,32 @@ export class UserService {
     return await this.userRepository.save(newUser);
   }
 
-  async findUserByIds(userIds: Number[]){
+  async findUserByIds(userIds: Number[]) {
     return await this.userRepository.findByIds(userIds);
+  }
+
+  async changePassword(
+    userId: number,
+    oldPassword: string,
+    newPassword: string,
+  ) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      select: ['id', 'password'],
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      throw new BadRequestException('Old password is incorrect');
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    await this.userRepository.update(userId, { password: hashedNewPassword });
+
+    return { message: 'Password updated successfully' };
   }
 }

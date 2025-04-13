@@ -13,14 +13,6 @@ import {
 import { Transform } from 'class-transformer';
 
 export class CreateCommentDto {
-  @ApiProperty({
-    description: 'ID of the post to which the comment belongs',
-    example: '123',
-  })
-  @IsString()
-  @IsNotEmpty()
-  postId: string;
-
   @ApiPropertyOptional({
     description: 'ID of the parent comment (if replying to another comment)',
     example: '456',
@@ -36,14 +28,6 @@ export class CreateCommentDto {
   @IsString()
   @IsNotEmpty()
   commentText: string;
-
-  @ApiPropertyOptional({
-    description: 'Array of mentioned user IDs',
-    example: [1, 2, 3],
-  })
-  @IsOptional()
-  @IsArray()
-  mentions?: number[];
 }
 
 export class CommentListingDto {
@@ -74,12 +58,4 @@ export class CommentListingDto {
   @IsOptional()
   @IsString()
   parentCommentId?: string | null;
-
-  @ApiProperty({
-    description: 'ID of the post for which comments are being fetched',
-    example: 123,
-  })
-  @IsNotEmpty()
-  @IsInt()
-  postId: number;
 }

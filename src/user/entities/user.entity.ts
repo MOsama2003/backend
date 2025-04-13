@@ -71,9 +71,6 @@ export class User {
   })
   comment: Comment;
 
-  @ManyToMany(() => Comment, (comment) => comment.mentions)
-  mentionedIn: Comment[];
-
   @OneToMany(()=> Notification, (notification)=>notification.user)
   notifications: Notification[];
 
