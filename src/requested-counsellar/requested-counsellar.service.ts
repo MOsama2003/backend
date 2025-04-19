@@ -108,6 +108,7 @@ export class RequestedCounsellarService {
     try {
       const counsellor = await this.requestedCounsellarRepository.findOne({
         where: { id },
+        relations: ['user']
       });
 
       if (!counsellor) {
