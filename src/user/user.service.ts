@@ -16,6 +16,7 @@ import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { RequestedCounsellarService } from 'src/requested-counsellar/requested-counsellar.service';
 import { CreateNonDeviceOwnerDto } from './dto/create-non-device-owner.dto';
 import { RequestedCounsellar } from 'src/requested-counsellar/entities/requested-counsellar.entity';
+import { AuthService } from 'src/auth/auth.service';
 
 @Injectable()
 export class UserService {
@@ -26,6 +27,7 @@ export class UserService {
     private readonly counsellarRepository: Repository<RequestedCounsellar>,
     private readonly cloudinaryService: CloudinaryService,
     private readonly mailService: MailService,
+    private readonly authService: AuthService
   ) {}
 
   private generateRandomPassword(length = 10): string {
@@ -61,7 +63,13 @@ export class UserService {
         .catch((err) =>
           console.error(`Error sending welcome email: ${err.message}`),
         );
-
+     
+        await this.authService.createStreamUser({
+          id: newUser.id,
+          name: newUser.firstName,
+          email: newUser.email,
+        });
+      
       return await this.userRepository.save(newUser);
     } catch (error) {
       console.error('Error creating user:', error);
@@ -215,6 +223,12 @@ export class UserService {
       createdAt: new Date().toISOString(),
     });
 
+    await this.authService.createStreamUser({
+      id: newUser.id,
+      name: newUser.firstName,
+      email: newUser.email,
+    });
+
     const savedUser = await this.userRepository.save(newUser);
 
     await this.mailService
@@ -265,7 +279,12 @@ export class UserService {
       .catch((err) =>
         console.error(`Error sending welcome email: ${err.message}`),
       );
-
+    
+      await this.authService.createStreamUser({
+        id: newUser.id,
+        name: newUser.firstName,
+        email: newUser.email,
+      });
     return await this.userRepository.save(newUser);
   }
 
