@@ -26,12 +26,7 @@ export class SensorBasedEventAndTaskMgtController {
     private readonly sensorBasedEventAndTaskMgtService: SensorBasedEventAndTaskMgtService,
   ) {}
 
-  @Post(':deviceId')
-  @ApiParam({
-    name: 'deviceId',
-    required: true,
-    description: 'ID of the device',
-  })
+  @Post()
   @ApiResponse({
     status: 201,
     description: 'Farm event/task created successfully',
@@ -40,12 +35,12 @@ export class SensorBasedEventAndTaskMgtController {
   @ApiBearerAuth()
   @ApiBody({ type: CreateSensorBasedEventAndTaskMgtDto })
   async createFarm(
-    @Param('deviceId') deviceId: string,
     @Body() createFarmDto: CreateSensorBasedEventAndTaskMgtDto,
+    @Req() req: any
   ) {
     return this.sensorBasedEventAndTaskMgtService.create({
       ...createFarmDto,
-      deviceId,
+     deviceId:  req.user.deviceId,
     });
   }
 
@@ -67,7 +62,7 @@ export class SensorBasedEventAndTaskMgtController {
   @Get('/farm-details')
   @ApiBearerAuth()
   async getFarmDetails(@Req() req: any) {
-    return this.sensorBasedEventAndTaskMgtService.getFormByDeviceId(req.deviceId);
+    return this.sensorBasedEventAndTaskMgtService.getFormByDeviceId(req.user.deviceId);
   }
 
   @Get('/task/:deviceId')

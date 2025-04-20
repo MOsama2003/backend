@@ -72,9 +72,20 @@ export class AuthController {
     } else {
       await this.userRepository.save({ ...user });
     }
+
+    await this.authService.createStreamUser({
+      id: user.id,
+      name: user.firstName,
+      email: user.email,
+    });
+  
+    // Generate Stream Chat token
+    const streamToken = this.authService.generateStreamToken(user.id);
+  
     return {
       access_token: accessToken,
       refresh_token: refreshToken,
+      streamToken,
       user: user
     };
   }

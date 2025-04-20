@@ -33,7 +33,7 @@ export class SensorBasedEventAndTaskMgtService {
     return [{
       found: !!farm,
       data: farm || null,
-      deviceId : deviceId
+      deviceId
     }];
   }  
 

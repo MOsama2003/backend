@@ -11,16 +11,27 @@ import {
   OTPDto,
   ResetPasswordUserDto,
 } from './dto/forgot-password.dto';
+import { StreamChat } from 'stream-chat';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
+  private serverClient: StreamChat;
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
     private readonly redisService: RedisService,
     private readonly mailService: MailService,
-  ) {}
+    private configService: ConfigService,
+  ) {
+    const apiKey = this.configService.get<string>('STREAM_API_KEY');
+    const apiSecret = this.configService.get<string>('STREAM_API_SECRET');
+    if (!apiKey || !apiSecret) {
+      throw new Error('Stream API key or secret is missing!');
+    }
+    this.serverClient = StreamChat.getInstance(apiKey, apiSecret);
+  }
 
   async generateAccessToken(user: {
     deviceId: string;
@@ -33,6 +44,28 @@ export class AuthService {
       id: user.id,
     };
     return this.jwtService.sign(payload);
+  }
+
+  generateStreamToken(userId: number) {
+    try {
+      return this.serverClient.createToken(userId.toString());
+    } catch (error) {
+      throw new Error(`Failed to generate Stream token: ${error.message}`);
+    }
+  }
+
+  async createStreamUser(user: { id: number; name: string; email: string }) {
+    try {
+      const streamUser = await this.serverClient.upsertUser({
+        id: user.id.toString(),
+        name: user.name,
+        email: user.email,
+      });
+
+      return streamUser;
+    } catch (error) {
+      throw new Error(`Failed to create Stream user: ${error.message}`);
+    }
   }
 
   async generateRefreshToken(user: { id: number }) {
