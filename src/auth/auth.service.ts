@@ -25,12 +25,7 @@ export class AuthService {
     private readonly mailService: MailService,
     private configService: ConfigService,
   ) {
-    const apiKey = this.configService.get<string>('STREAM_API_KEY');
-    const apiSecret = this.configService.get<string>('STREAM_API_SECRET');
-    if (!apiKey || !apiSecret) {
-      throw new Error('Stream API key or secret is missing!');
-    }
-    this.serverClient = StreamChat.getInstance(apiKey, apiSecret);
+    this.serverClient = StreamChat.getInstance("dmv879kfq7fh", "p946xb2svrd4jjsth7xammsupm8bphyhttq4zg42vrqgeuuhy2ur6hdwg26j2ucj");
   }
 
   async generateAccessToken(user: {
