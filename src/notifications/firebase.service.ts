@@ -32,19 +32,27 @@ export class FirebaseService implements OnModuleInit {
   ) {
     const { body, title, data } = Notificationbody;
     const user = await this.userService.findByIdForNotification(+userId);
-
-    if (!user || !user.fcmToken) {
+  
+    // Check if user and FCM token exist
+    if (!user || !user.fcmToken || typeof user.fcmToken !== 'string' || user.fcmToken.trim().length === 0) {
+      console.warn(`FCM token missing or invalid for user ID: ${userId}`);
       return;
     }
-
+  
     const message = {
       notification: { title, body },
-      token: user.fcmToken,
+      token: user.fcmToken.trim(),
       data: data || {},
     };
-
-    await admin.messaging().send(message);
-
+  
+    try {
+      await admin.messaging().send(message);
+    } catch (err) {
+      console.error(`Error sending FCM to user ID ${userId}:`, err.message);
+      // You might want to handle invalid token here (e.g., remove token if permanently invalid)
+      return;
+    }
+  
     const notification = this.notificationRepository.create({
       title,
       body,
@@ -52,10 +60,10 @@ export class FirebaseService implements OnModuleInit {
       isRead: false,
       data: data || {},
     });
-
+  
     await this.notificationRepository.save(notification);
   }
-
+  
   async subscribeToGlobalNotifications(fcmToken) {
     if (!fcmToken) {
       throw new BadRequestException('User does not have an FCM token.');

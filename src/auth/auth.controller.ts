@@ -18,6 +18,7 @@ import {
   ResetPasswordUserDto,
 } from './dto/forgot-password.dto';
 import { FirebaseService } from 'src/notifications/firebase.service';
+import { StreamService } from 'src/stream/stream.service';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -27,6 +28,7 @@ export class AuthController {
     private readonly userRepository: Repository<User>,
     private readonly authService: AuthService,
     private readonly notificationService: FirebaseService,
+    private readonly streamService: StreamService
   ) {}
 
   @Post('/login')
@@ -72,10 +74,14 @@ export class AuthController {
     } else {
       await this.userRepository.save({ ...user });
     }
+    
+    const streamToken = await this.streamService.generateStreamToken(user.id);
+    
     return {
       access_token: accessToken,
       refresh_token: refreshToken,
-      user: user
+      user: user,
+      streamToken
     };
   }
 

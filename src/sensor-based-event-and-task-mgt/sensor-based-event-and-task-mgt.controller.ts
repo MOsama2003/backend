@@ -1,16 +1,23 @@
-import { Controller, Post, Body, Param, Get, Patch, Req } from '@nestjs/common';
 import {
-  ApiTags,
-  ApiOperation,
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Put,
+  Req,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiBody,
   ApiParam,
   ApiResponse,
-  ApiBody,
-  ApiBearerAuth,
+  ApiTags
 } from '@nestjs/swagger';
-import { SensorBasedEventAndTaskMgtService } from './sensor-based-event-and-task-mgt.service';
 import { CreateSensorBasedEventAndTaskMgtDto } from './dto/create-sensor-based-event-and-task-mgt.dto';
-import { TaskStatus } from 'src/constants';
 import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
+import { SensorBasedEventAndTaskMgtService } from './sensor-based-event-and-task-mgt.service';
 
 @ApiTags('Sensor-Based Event and Task Management')
 @Controller('sensor-based-event-and-task-mgt')
@@ -19,13 +26,7 @@ export class SensorBasedEventAndTaskMgtController {
     private readonly sensorBasedEventAndTaskMgtService: SensorBasedEventAndTaskMgtService,
   ) {}
 
-  @Post(':deviceId')
-  @ApiOperation({ summary: 'Create a new farm event/task for a given device' })
-  @ApiParam({
-    name: 'deviceId',
-    required: true,
-    description: 'ID of the device',
-  })
+  @Post()
   @ApiResponse({
     status: 201,
     description: 'Farm event/task created successfully',
@@ -34,12 +35,12 @@ export class SensorBasedEventAndTaskMgtController {
   @ApiBearerAuth()
   @ApiBody({ type: CreateSensorBasedEventAndTaskMgtDto })
   async createFarm(
-    @Param('deviceId') deviceId: string,
     @Body() createFarmDto: CreateSensorBasedEventAndTaskMgtDto,
+    @Req() req: any
   ) {
     return this.sensorBasedEventAndTaskMgtService.create({
       ...createFarmDto,
-      deviceId,
+     deviceId:  req.user.deviceId,
     });
   }
 
@@ -47,6 +48,21 @@ export class SensorBasedEventAndTaskMgtController {
   @ApiBearerAuth()
   async getAdvisory(@Param('deviceId') deviceId: string, @Req() req) {
     return this.sensorBasedEventAndTaskMgtService.addAdvisories(deviceId, req);
+  }
+
+  @Put('/farm-details/:farmId')
+  @ApiBearerAuth()
+  async updateFarmDetails(
+    @Param('farmId') id: number,
+    @Body() updateFarmDto: CreateSensorBasedEventAndTaskMgtDto & { deviceId: string },
+  ) {
+    return this.sensorBasedEventAndTaskMgtService.update(id, updateFarmDto);
+  }
+
+  @Get('/farm-details')
+  @ApiBearerAuth()
+  async getFarmDetails(@Req() req: any) {
+    return this.sensorBasedEventAndTaskMgtService.getFormByDeviceId(req.user.deviceId);
   }
 
   @Get('/task/:deviceId')
@@ -72,12 +88,12 @@ export class SensorBasedEventAndTaskMgtController {
   @ApiParam({ name: 'taskId', type: String, description: 'ID of the task' })
   async updateTaskStatus(
     @Param('taskId') id: string,
-    @Body() body: UpdateTaskStatusDto
+    @Body() body: UpdateTaskStatusDto,
   ) {
-    const {taskStatus} = body;
+    const { taskStatus } = body;
     return this.sensorBasedEventAndTaskMgtService.updateTaskStatus({
       id,
-      taskStatus
+      taskStatus,
     });
   }
 }

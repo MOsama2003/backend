@@ -4,18 +4,18 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { RequestedCounsellar } from 'src/requested-counsellar/entities/requested-counsellar.entity';
 import { ILike, Repository } from 'typeorm';
 import { CONSTANTS } from '../constants';
 import { MailService } from '../mail/mail.service';
-import { PaginationQueryDto } from './dto/pagination-query.dto';
-import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
-import { RequestedCounsellarService } from 'src/requested-counsellar/requested-counsellar.service';
 import { CreateNonDeviceOwnerDto } from './dto/create-non-device-owner.dto';
-import { RequestedCounsellar } from 'src/requested-counsellar/entities/requested-counsellar.entity';
+import { CreateUserDto } from './dto/create-user.dto';
+import { PaginationQueryDto } from './dto/pagination-query.dto';
+import { User } from './entities/user.entity';
+import { StreamService } from 'src/stream/stream.service';
 
 @Injectable()
 export class UserService {
@@ -26,6 +26,7 @@ export class UserService {
     private readonly counsellarRepository: Repository<RequestedCounsellar>,
     private readonly cloudinaryService: CloudinaryService,
     private readonly mailService: MailService,
+    private readonly streamService: StreamService
   ) {}
 
   private generateRandomPassword(length = 10): string {
@@ -61,7 +62,13 @@ export class UserService {
         .catch((err) =>
           console.error(`Error sending welcome email: ${err.message}`),
         );
-
+     
+        await this.streamService.createStreamUser({
+          id: newUser.id,
+          name: newUser.firstName,
+          email: newUser.email,
+        });
+      
       return await this.userRepository.save(newUser);
     } catch (error) {
       console.error('Error creating user:', error);
@@ -215,6 +222,12 @@ export class UserService {
       createdAt: new Date().toISOString(),
     });
 
+    await this.streamService.createStreamUser({
+      id: newUser.id,
+      name: newUser.firstName,
+      email: newUser.email,
+    });
+
     const savedUser = await this.userRepository.save(newUser);
 
     await this.mailService
@@ -265,7 +278,12 @@ export class UserService {
       .catch((err) =>
         console.error(`Error sending welcome email: ${err.message}`),
       );
-
+    
+      await this.streamService.createStreamUser({
+        id: newUser.id,
+        name: newUser.firstName,
+        email: newUser.email,
+      });
     return await this.userRepository.save(newUser);
   }
 
