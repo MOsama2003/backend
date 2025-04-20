@@ -42,7 +42,7 @@ export class AppointmentService {
   async getAppointmentsOfUser(userId: number, paginationQuery: PaginationQueryDto) {
 
 
-    const { page, limit, upcoming } = paginationQuery;
+    const { page, limit = 10, upcoming } = paginationQuery;
     const currentDate = new Date();
 
     const whereCondition = upcoming

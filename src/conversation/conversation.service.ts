@@ -167,6 +167,7 @@ export class ConversationService {
       status: DeliveryStatus.SEND,
       conversation,
       broadcastId,
+      createdAt: new Date()
     });
 
     const savedMessage = await this.messagesRepository.save(message);

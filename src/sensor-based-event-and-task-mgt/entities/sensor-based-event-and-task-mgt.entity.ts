@@ -1,7 +1,20 @@
-
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+} from 'typeorm';
 import { IsEnum, IsBoolean, IsDate, IsString, IsNumber } from 'class-validator';
-import { FertilizerType, GrowingConditions, GrowthStage, IrrigationType, MoistureLevel, SoilType, WaterAvailability, WaterSource } from 'src/constants';
+import {
+  FertilizerType,
+  GrowingConditions,
+  GrowthStage,
+  IrrigationType,
+  MoistureLevel,
+  SoilType,
+  WaterAvailability,
+  WaterSource,
+} from 'src/constants';
 
 @Entity()
 export class SensorOnboarding {
@@ -10,11 +23,11 @@ export class SensorOnboarding {
 
   @Column('float')
   @IsNumber()
-  totalLandArea: number; 
+  totalLandArea: number;
 
   @Column()
   @IsString()
-  farmLocation: string; 
+  farmLocation: string;
 
   @Column('decimal', { precision: 10, scale: 6, nullable: true })
   latitude: number;
@@ -24,8 +37,8 @@ export class SensorOnboarding {
 
   @Column()
   @IsString()
-  deviceId: string; 
-  
+  deviceId: string;
+
   @Column({ type: 'enum', enum: SoilType })
   @IsEnum(SoilType)
   soilType: SoilType;
@@ -68,4 +81,7 @@ export class SensorOnboarding {
 
   @Column({ type: 'simple-array' })
   fertilizersUsed: FertilizerType[];
+
+  @CreateDateColumn()
+  createdAt: Date;
 }

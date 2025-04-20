@@ -1,7 +1,7 @@
-import { User } from "src/user/entities/user.entity";
-import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Conversation } from "./conversation.entity";
 import { DeliveryStatus } from "src/constants";
+import { User } from "src/user/entities/user.entity";
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Conversation } from "./conversation.entity";
 
 @Entity()
 export class ConversationMessages {
@@ -23,7 +23,7 @@ export class ConversationMessages {
   @Column({ type: "enum", enum: DeliveryStatus , default: DeliveryStatus.SEND })
   status: DeliveryStatus; 
 
-  @CreateDateColumn()
+  @Column()
   createdAt: Date; 
 
   @Column({ nullable: true })

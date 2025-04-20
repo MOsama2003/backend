@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateSensorBasedEventAndTaskMgtDto } from './dto/create-sensor-based-event-and-task-mgt.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -18,7 +18,7 @@ export class SensorBasedEventAndTaskMgtService {
     private readonly sensorDataService: SensorDataService,
     private readonly sensorBasedAdvisoryService: SensorBasedAdvisoryService,
     private readonly sensorBasedTaskService: SensorBasedTaskService,
-    private readonly sensorBasedWeeklySummaryService: SensorBasedWeeklySummaryService
+    private readonly sensorBasedWeeklySummaryService: SensorBasedWeeklySummaryService,
   ) {}
 
   async create(
@@ -28,6 +28,27 @@ export class SensorBasedEventAndTaskMgtService {
     return await this.farmRepository.save(farm);
   }
 
+  async getFormByDeviceId(deviceId: string): Promise<{ found: boolean; data: SensorOnboarding | null; deviceId: string }[]> {
+    const farm = await this.farmRepository.findOne({ where: { deviceId } });
+    return [{
+      found: !!farm,
+      data: farm || null,
+      deviceId : deviceId
+    }];
+  }  
+
+  async update(
+    id: number,
+    updateFarmDto: CreateSensorBasedEventAndTaskMgtDto & { deviceId: string },
+  ): Promise<SensorOnboarding> {
+    const farm = await this.farmRepository.findOne({ where: { id } });
+    if (!farm) {
+      throw new NotFoundException(`Farm with ID ${id} not found`);
+    }
+    const updatedFarm = this.farmRepository.create({ ...updateFarmDto, id });
+    return await this.farmRepository.save(updatedFarm);
+  }
+  
   async addAdvisories(deviceId: string, req) {
     if (!deviceId) return;
     const latestNKP = await this.sensorDataService.lastTwoEntries(deviceId);
@@ -52,7 +73,7 @@ export class SensorBasedEventAndTaskMgtService {
     return this.sensorBasedAdvisoryService.saveAdvisories(
       JSON.parse(res?.advisories),
       deviceId,
-      req
+      req,
     );
   }
 
@@ -85,7 +106,7 @@ export class SensorBasedEventAndTaskMgtService {
     return this.sensorBasedTaskService.saveTasks(
       JSON.parse(res?.tasks),
       deviceId,
-      req
+      req,
     );
   }
 
@@ -122,7 +143,7 @@ export class SensorBasedEventAndTaskMgtService {
     return this.sensorBasedTaskService.updateTasks(
       JSON.parse(res?.updatedTasks),
       deviceId,
-      req
+      req,
     );
   }
 
@@ -132,7 +153,8 @@ export class SensorBasedEventAndTaskMgtService {
     const farmData = await this.farmRepository.findOne({ where: { deviceId } });
     const advisories =
       await this.sensorBasedAdvisoryService.getAdvisoryOfWholeWeek(deviceId);
-    const tasks = await this.sensorBasedTaskService.getTasksOfWholeWeek(deviceId);
+    const tasks =
+      await this.sensorBasedTaskService.getTasksOfWholeWeek(deviceId);
     const body = {
       farm_info: farmData ? JSON.parse(JSON.stringify(farmData)) : null,
       npk_data: latestNKP
@@ -159,12 +181,12 @@ export class SensorBasedEventAndTaskMgtService {
     return this.sensorBasedWeeklySummaryService.saveWeeklySummary(
       JSON.parse(res?.weeklySummary),
       deviceId,
-      req
+      req,
     );
   }
 
-  async updateTaskStatus(data : UpdateTaskStatusDto){
+  async updateTaskStatus(data: UpdateTaskStatusDto) {
     const { id, taskStatus } = data;
-    return this.sensorBasedTaskService.updateStatus({id, taskStatus})
+    return this.sensorBasedTaskService.updateStatus({ id, taskStatus });
   }
 }

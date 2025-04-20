@@ -1,16 +1,23 @@
-import { Controller, Post, Body, Param, Get, Patch, Req } from '@nestjs/common';
 import {
-  ApiTags,
-  ApiOperation,
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Put,
+  Req,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiBody,
   ApiParam,
   ApiResponse,
-  ApiBody,
-  ApiBearerAuth,
+  ApiTags
 } from '@nestjs/swagger';
-import { SensorBasedEventAndTaskMgtService } from './sensor-based-event-and-task-mgt.service';
 import { CreateSensorBasedEventAndTaskMgtDto } from './dto/create-sensor-based-event-and-task-mgt.dto';
-import { TaskStatus } from 'src/constants';
 import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
+import { SensorBasedEventAndTaskMgtService } from './sensor-based-event-and-task-mgt.service';
 
 @ApiTags('Sensor-Based Event and Task Management')
 @Controller('sensor-based-event-and-task-mgt')
@@ -20,7 +27,6 @@ export class SensorBasedEventAndTaskMgtController {
   ) {}
 
   @Post(':deviceId')
-  @ApiOperation({ summary: 'Create a new farm event/task for a given device' })
   @ApiParam({
     name: 'deviceId',
     required: true,
@@ -49,6 +55,21 @@ export class SensorBasedEventAndTaskMgtController {
     return this.sensorBasedEventAndTaskMgtService.addAdvisories(deviceId, req);
   }
 
+  @Put('/farm-details/:farmId')
+  @ApiBearerAuth()
+  async updateFarmDetails(
+    @Param('farmId') id: number,
+    @Body() updateFarmDto: CreateSensorBasedEventAndTaskMgtDto & { deviceId: string },
+  ) {
+    return this.sensorBasedEventAndTaskMgtService.update(id, updateFarmDto);
+  }
+
+  @Get('/farm-details')
+  @ApiBearerAuth()
+  async getFarmDetails(@Req() req: any) {
+    return this.sensorBasedEventAndTaskMgtService.getFormByDeviceId(req.deviceId);
+  }
+
   @Get('/task/:deviceId')
   @ApiBearerAuth()
   async getTask(@Param('deviceId') deviceId: string, @Req() req) {
@@ -72,12 +93,12 @@ export class SensorBasedEventAndTaskMgtController {
   @ApiParam({ name: 'taskId', type: String, description: 'ID of the task' })
   async updateTaskStatus(
     @Param('taskId') id: string,
-    @Body() body: UpdateTaskStatusDto
+    @Body() body: UpdateTaskStatusDto,
   ) {
-    const {taskStatus} = body;
+    const { taskStatus } = body;
     return this.sensorBasedEventAndTaskMgtService.updateTaskStatus({
       id,
-      taskStatus
+      taskStatus,
     });
   }
 }
