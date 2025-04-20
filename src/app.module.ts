@@ -16,6 +16,7 @@ import { AppointmentModule } from './appointment/appointment.module';
 import { ConsultAiChatModule } from './consult-ai-chat/consult-ai-chat.module';
 import { ConversationModule } from './conversation/conversation.module';
 import { StripeModule } from './stripe/stripe.module';
+import { StreamModule } from './stream/stream.module';
 
 @Module({
   imports: [
@@ -51,7 +52,8 @@ import { StripeModule } from './stripe/stripe.module';
     NotificationsModule,
     ConversationModule,
     NotificationsModule,
-    StripeModule
+    StripeModule,
+    StreamModule
   ],
   controllers: [],
   providers: [],

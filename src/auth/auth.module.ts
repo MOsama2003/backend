@@ -14,6 +14,7 @@ import { RequestedCounsellarService } from 'src/requested-counsellar/requested-c
 import { RequestedCounsellar } from 'src/requested-counsellar/entities/requested-counsellar.entity';
 import { RedisService } from 'src/redis/redis.service';
 import { NotificationsModule } from 'src/notifications/notifications.module';
+import { StreamModule } from 'src/stream/stream.module';
 
 @Module({
   imports: [
@@ -24,7 +25,8 @@ import { NotificationsModule } from 'src/notifications/notifications.module';
       secret: 'ACCESS-TOKEN',
       signOptions: { expiresIn: '1d' },
     }),
-    NotificationsModule
+    NotificationsModule,
+    StreamModule
   ],
   controllers: [AuthController],
   providers: [AuthService, UserService, LocalStrategy, JwtStrategy, MailService, CloudinaryService, RequestedCounsellarService, RedisService],
