@@ -1,14 +1,17 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateSensorBasedEventAndTaskMgtDto } from './dto/create-sensor-based-event-and-task-mgt.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { SensorOnboarding } from './entities/sensor-based-event-and-task-mgt.entity';
 import { SensorDataService } from 'src/sensorData/sensorData.service';
+import { Repository } from 'typeorm';
 import { SensorBasedAdvisoryService } from './advisory-generation.service';
+import { CreateSensorBasedEventAndTaskMgtDto } from './dto/create-sensor-based-event-and-task-mgt.dto';
+import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
+import { SensorOnboarding } from './entities/sensor-based-event-and-task-mgt.entity';
 import { SensorBasedTaskService } from './tasks-generation.service';
 import { SensorBasedWeeklySummaryService } from './weekly-summary.service';
-import { TaskStatus } from 'src/constants';
-import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
+import {
+  GetDeviceAdvisoryDto,
+  GetDeviceTasksDto,
+} from './dto/get-sensor-based-tasks.dto';
 
 @Injectable()
 export class SensorBasedEventAndTaskMgtService {
@@ -28,27 +31,48 @@ export class SensorBasedEventAndTaskMgtService {
     return await this.farmRepository.save(farm);
   }
 
-  async getFormByDeviceId(deviceId: string): Promise<{ found: boolean; data: SensorOnboarding | null; deviceId: string }[]> {
+  async getFormByDeviceId(
+    deviceId: string,
+  ): Promise<
+    { found: boolean; data: SensorOnboarding | null; deviceId: string }[]
+  > {
+    if (!deviceId) {
+      return [
+        {
+          found: false,
+          data: null,
+          deviceId: deviceId ?? '',
+        },
+      ];
+    }
+
     const farm = await this.farmRepository.findOne({ where: { deviceId } });
-    return [{
-      found: !!farm,
-      data: farm || null,
-      deviceId
-    }];
-  }  
+
+    return [
+      {
+        found: !!farm,
+        data: farm || null,
+        deviceId,
+      },
+    ];
+  }
 
   async update(
-    id: number,
-    updateFarmDto: CreateSensorBasedEventAndTaskMgtDto & { deviceId: string },
-  ): Promise<SensorOnboarding> {
-    const farm = await this.farmRepository.findOne({ where: { id } });
+    deviceId: string,
+    updateFarmDto: CreateSensorBasedEventAndTaskMgtDto,
+  ) {
+    const farm = await this.farmRepository.findOne({ where: { deviceId } });
+
     if (!farm) {
-      throw new NotFoundException(`Farm with ID ${id} not found`);
+      throw new NotFoundException(`Farm with device ID ${deviceId} not found`);
     }
-    const updatedFarm = this.farmRepository.create({ ...updateFarmDto, id });
-    return await this.farmRepository.save(updatedFarm);
+
+    const updatedFarm = this.farmRepository.merge(farm, updateFarmDto);
+    await this.farmRepository.save(updatedFarm);
+
+    return { message: `Device ${deviceId} updated!` };
   }
-  
+
   async addAdvisories(deviceId: string, req) {
     if (!deviceId) return;
     const latestNKP = await this.sensorDataService.lastTwoEntries(deviceId);
@@ -188,5 +212,32 @@ export class SensorBasedEventAndTaskMgtService {
   async updateTaskStatus(data: UpdateTaskStatusDto) {
     const { id, taskStatus } = data;
     return this.sensorBasedTaskService.updateStatus({ id, taskStatus });
+  }
+
+  async getTasks(deviceId: string, query: GetDeviceTasksDto) {
+    return this.sensorBasedTaskService.getTasks(deviceId, query);
+  }
+
+  async getAdvisories(deviceId: string, query: GetDeviceAdvisoryDto) {
+    return this.sensorBasedAdvisoryService.getAdvisories(deviceId, query);
+  }
+
+  async getWeeklyReport(deviceId: string, query: GetDeviceAdvisoryDto) {
+    return this.sensorBasedWeeklySummaryService.getWeeklyReport(
+      deviceId,
+      query,
+    );
+  }
+
+  async dashboard(deviceId: string) {
+    const task = await this.sensorBasedTaskService.lastEntry(deviceId);
+    const advisory = await this.sensorBasedAdvisoryService.lastEntry(deviceId);
+    const report =
+      await this.sensorBasedWeeklySummaryService.lastEntry(deviceId);
+    return {
+      ...task,
+      ...advisory,
+      ...report,
+    };
   }
 }

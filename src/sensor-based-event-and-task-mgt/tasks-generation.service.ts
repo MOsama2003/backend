@@ -5,13 +5,14 @@ import { DeviceTasks } from './entities/task.entity';
 import { TaskSeverity, TaskStatus } from 'src/constants';
 import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
 import { FirebaseService } from 'src/notifications/firebase.service';
+import { GetDeviceTasksDto } from './dto/get-sensor-based-tasks.dto';
 
 @Injectable()
 export class SensorBasedTaskService {
   constructor(
     @InjectRepository(DeviceTasks)
     private readonly taskRepository: Repository<DeviceTasks>,
-    private readonly notificationService: FirebaseService
+    private readonly notificationService: FirebaseService,
   ) {}
 
   async saveTasks(tasks: any[], deviceId: string, req): Promise<DeviceTasks[]> {
@@ -22,12 +23,14 @@ export class SensorBasedTaskService {
       createdAt: new Date(),
     }));
 
-    await this.notificationService.sendNotification({
-      title : 'New Tasks added for today',
-      body: 'check Tasks',
-      data: tasks
-    }, +req.user.id)
-    
+    await this.notificationService.sendNotification(
+      {
+        title: 'New Tasks added for today',
+        body: 'check Tasks',
+        data: tasks,
+      },
+      +req.user.id,
+    );
 
     return this.taskRepository.save(taskEntities);
   }
@@ -73,31 +76,33 @@ export class SensorBasedTaskService {
       );
     }
 
-    await this.notificationService.sendNotification({
-      title : 'Existing tasks has been updated',
-      body: 'check Events',
-      data: updatedTasks
-    }, +req.user.id)
-    
+    await this.notificationService.sendNotification(
+      {
+        title: 'Existing tasks has been updated',
+        body: 'check Events',
+        data: updatedTasks,
+      },
+      +req.user.id,
+    );
   }
 
   async getTasksOfWholeWeek(deviceId: string): Promise<DeviceTasks[]> {
-      const now = new Date();
-      const startOfWeek = new Date(now);
-      startOfWeek.setDate(now.getDate() - now.getDay());
-      startOfWeek.setHours(0, 0, 0, 0);
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6); 
-      endOfWeek.setHours(23, 59, 59, 999);
-    
-      return this.taskRepository.find({
-        where: {
-          deviceId,
-          createdAt: Between(startOfWeek, endOfWeek),
-        },
-        order: { createdAt: "DESC" },
-      });
-    }
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
+
+    return this.taskRepository.find({
+      where: {
+        deviceId,
+        createdAt: Between(startOfWeek, endOfWeek),
+      },
+      order: { createdAt: 'DESC' },
+    });
+  }
 
   private mapTaskStatus(status: string): TaskStatus | undefined {
     const lowerCaseStatus = status.toLowerCase();
@@ -113,8 +118,49 @@ export class SensorBasedTaskService {
     );
   }
 
-  async updateStatus(data : UpdateTaskStatusDto) {
-    const { id, taskStatus} = data;
-    return await this.taskRepository.update(id, {taskStatus})
+  async updateStatus(data: UpdateTaskStatusDto) {
+    const { id, taskStatus } = data;
+    return await this.taskRepository.update(id, { taskStatus });
+  }
+
+  // device-tasks.service.ts
+  async getTasks(deviceId: string, query: GetDeviceTasksDto) {
+    const { page = 1, limit = 5, taskStatus } = query;
+    if (!deviceId) {
+      return {
+        advisories: null,
+      };
+    }
+    const whereClause: any = { deviceId };
+    if (taskStatus) whereClause.taskStatus = taskStatus;
+
+    const [tasks, total] = await this.taskRepository.findAndCount({
+      where: whereClause,
+      order: { createdAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    return {
+      total,
+      page,
+      limit,
+      tasks,
+    };
+  }
+  async lastEntry(deviceId: string) {
+    if (!deviceId) {
+      return {
+        task: null,
+      };
+    }
+    const task = await this.taskRepository.findOne({
+      where: { deviceId },
+      order: { createdAt: 'DESC' },
+    });
+
+    return {
+      task,
+    };
   }
 }

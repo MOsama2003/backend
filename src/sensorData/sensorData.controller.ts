@@ -29,4 +29,10 @@ export class SensorDataController {
   async findAll(@Query() paginationQuery: PaginationQueryDto, @Req() req) {
     return this.sensorDataService.dataListing(paginationQuery, req);
   }
+  
+  @Get('latest')
+  @ApiBearerAuth()
+  async findLast(@Req() req: any){
+    return this.sensorDataService.lastEntry(req.user.deviceId)
+  }
 }

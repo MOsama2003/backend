@@ -26,7 +26,7 @@ export class UserService {
     private readonly counsellarRepository: Repository<RequestedCounsellar>,
     private readonly cloudinaryService: CloudinaryService,
     private readonly mailService: MailService,
-    private readonly streamService: StreamService
+    private readonly streamService: StreamService,
   ) {}
 
   private generateRandomPassword(length = 10): string {
@@ -62,13 +62,13 @@ export class UserService {
         .catch((err) =>
           console.error(`Error sending welcome email: ${err.message}`),
         );
-     
-        await this.streamService.createStreamUser({
-          id: newUser.id,
-          name: newUser.firstName,
-          email: newUser.email,
-        });
-      
+
+      await this.streamService.createStreamUser({
+        id: newUser.id,
+        name: newUser.firstName,
+        email: newUser.email,
+      });
+
       return await this.userRepository.save(newUser);
     } catch (error) {
       console.error('Error creating user:', error);
@@ -112,7 +112,7 @@ export class UserService {
           'role',
           'createdAt',
           'lastName',
-          'disabled'
+          'disabled',
         ],
       });
 
@@ -222,14 +222,12 @@ export class UserService {
       createdAt: new Date().toISOString(),
     });
 
-    await this.streamService.createStreamUser({
-      id: newUser.id,
-      name: newUser.firstName,
-      email: newUser.email,
-    });
-
     const savedUser = await this.userRepository.save(newUser);
-
+    await this.streamService.createStreamUser({
+      id: savedUser.id,
+      name: savedUser.firstName,
+      email: savedUser.email,
+    });
     await this.mailService
       .sendCredentialsMailToRequestedCounsellar(
         savedUser.email,
@@ -278,13 +276,15 @@ export class UserService {
       .catch((err) =>
         console.error(`Error sending welcome email: ${err.message}`),
       );
-    
-      await this.streamService.createStreamUser({
-        id: newUser.id,
-        name: newUser.firstName,
-        email: newUser.email,
-      });
-    return await this.userRepository.save(newUser);
+
+    const userr = await this.userRepository.save(newUser);
+    await this.streamService.createStreamUser({
+      id: userr.id,
+      name: userr.firstName,
+      email: userr.email,
+    });
+
+    return userr;
   }
 
   async findUserByIds(userIds: Number[]) {

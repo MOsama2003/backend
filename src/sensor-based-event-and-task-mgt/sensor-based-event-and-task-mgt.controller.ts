@@ -6,6 +6,7 @@ import {
   Patch,
   Post,
   Put,
+  Query,
   Req,
 } from '@nestjs/common';
 import {
@@ -18,6 +19,7 @@ import {
 import { CreateSensorBasedEventAndTaskMgtDto } from './dto/create-sensor-based-event-and-task-mgt.dto';
 import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
 import { SensorBasedEventAndTaskMgtService } from './sensor-based-event-and-task-mgt.service';
+import { GetDeviceAdvisoryDto, GetDeviceTasksDto } from './dto/get-sensor-based-tasks.dto';
 
 @ApiTags('Sensor-Based Event and Task Management')
 @Controller('sensor-based-event-and-task-mgt')
@@ -50,13 +52,14 @@ export class SensorBasedEventAndTaskMgtController {
     return this.sensorBasedEventAndTaskMgtService.addAdvisories(deviceId, req);
   }
 
-  @Put('/farm-details/:farmId')
+  @Put('/farm-details')
   @ApiBearerAuth()
+  @ApiBody({ type: CreateSensorBasedEventAndTaskMgtDto })
   async updateFarmDetails(
-    @Param('farmId') id: number,
-    @Body() updateFarmDto: CreateSensorBasedEventAndTaskMgtDto & { deviceId: string },
+    @Body() updateFarmDto: CreateSensorBasedEventAndTaskMgtDto,
+    @Req() req: any
   ) {
-    return this.sensorBasedEventAndTaskMgtService.update(id, updateFarmDto);
+    return this.sensorBasedEventAndTaskMgtService.update(req.user.deviceId, updateFarmDto);
   }
 
   @Get('/farm-details')
@@ -95,5 +98,29 @@ export class SensorBasedEventAndTaskMgtController {
       id,
       taskStatus,
     });
+  }
+
+  @Get('/task-listing')
+  @ApiBearerAuth()
+  async taskListing(@Req() req: any, @Query() query: GetDeviceTasksDto) {
+    return this.sensorBasedEventAndTaskMgtService.getTasks(req.user.deviceId, query)
+  }
+
+  @Get('/advisory-listing')
+  @ApiBearerAuth()
+  async advisoryListing(@Req() req: any, @Query() query: GetDeviceAdvisoryDto) {
+    return this.sensorBasedEventAndTaskMgtService.getAdvisories(req.user.deviceId, query)
+  }
+
+  @Get('/weekly-reports-listing')
+  @ApiBearerAuth()
+  async reportListing(@Req() req: any, @Query() query: GetDeviceAdvisoryDto) {
+    return this.sensorBasedEventAndTaskMgtService.getWeeklyReport(req.user.deviceId, query)
+  }
+
+  @Get('/dashboard-listing')
+  @ApiBearerAuth()
+  async dashboard(@Req() req: any) {
+    return this.sensorBasedEventAndTaskMgtService.dashboard(req.user.deviceId)
   }
 }
