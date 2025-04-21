@@ -240,4 +240,8 @@ export class SensorBasedEventAndTaskMgtService {
       ...report,
     };
   }
+
+  async getTaskStatusCounts(deviceId: string) {
+    return this.sensorBasedTaskService.getTaskStatusCounts(deviceId);
+  }
 }

@@ -123,4 +123,10 @@ export class SensorBasedEventAndTaskMgtController {
   async dashboard(@Req() req: any) {
     return this.sensorBasedEventAndTaskMgtService.dashboard(req.user.deviceId)
   }
+
+  @Get('/task-Summary-report')
+  @ApiBearerAuth()
+  async getTaskStatusCounts(@Req() req: any) {
+    return this.sensorBasedEventAndTaskMgtService.getTaskStatusCounts(req.user.deviceId)
+  }
 }

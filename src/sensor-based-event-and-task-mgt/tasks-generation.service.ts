@@ -163,4 +163,23 @@ export class SensorBasedTaskService {
       task,
     };
   }
+
+  async getTaskStatusCounts(deviceId: string) {
+    const statuses = Object.values(TaskStatus) as TaskStatus[];
+    if (!deviceId) {
+      return {
+        result: null,
+      };
+    }
+    const result: Record<TaskStatus, number> = {} as Record<TaskStatus, number>;
+
+    for (const status of statuses) {
+      const count = await this.taskRepository.count({
+        where: { taskStatus: status, deviceId },
+      });
+      result[status] = count;
+    }
+
+    return { result: result };
+  }
 }
