@@ -9,7 +9,7 @@ import Groq from 'groq-sdk';
 
 @Injectable()
 export class ConsultAiChatService {
-  private MODEL = 'llama-3.2-90b-vision-preview';
+  private MODEL = 'meta-llama/llama-4-maverick-17b-128e-instruct';
   private groqClient: Groq;
 
 

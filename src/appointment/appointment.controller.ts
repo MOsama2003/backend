@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, UseGuards, Request, ValidationPipe } from '@nestjs/common';
 import { AppointmentService } from './appointment.service';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { BookAppointmentDto } from './dto/book-appointments.dto';
@@ -14,20 +14,20 @@ export class AppointmentController {
   @UseGuards(JwtAuthGuard) 
   @Get('counselor')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get all (past & upcoming) appointments for the counselor.' })
+  @ApiOperation({ summary: 'Get all, past & upcoming appointments for the counselor.' })
   @ApiResponse({ status: 200, description: 'List of appointments for the counselor' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async getAppointmentsOfCounselor(@Request() req, @Query() paginationQuery: PaginationQueryDto) {
+  async getAppointmentsOfCounselor(@Request() req, @Query(new ValidationPipe({ transform: true })) paginationQuery: PaginationQueryDto) {
     return this.appointmentsService.getAppointmentsOfCounselor(req.user.id, paginationQuery);
   }
 
   @UseGuards(JwtAuthGuard) 
   @Get('user')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get all (past & upcoming) appointments for the user.' })
+  @ApiOperation({ summary: 'Get all, past & upcoming appointments for the user.' })
   @ApiResponse({ status: 200, description: 'List of appointments for the user' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async getAppointmentsOfUser(@Request() req, @Query() paginationQuery: PaginationQueryDto) {
+  async getAppointmentsOfUser(@Request() req, @Query(new ValidationPipe({ transform: true })) paginationQuery: PaginationQueryDto) {
     return this.appointmentsService.getAppointmentsOfUser(req.user.id, paginationQuery);
   }
 

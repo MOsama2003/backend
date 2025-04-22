@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, MoreThanOrEqual, Repository } from 'typeorm';
+import { Between, LessThan, MoreThanOrEqual, Repository } from 'typeorm';
 import { Appointment } from './entities/appointment.entity';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { BookAppointmentDto } from './dto/book-appointments.dto';
@@ -16,39 +16,64 @@ export class AppointmentService {
     private readonly counselorRepository: Repository<RequestedCounsellar>,
   ) {}
 
-  
+
   async getAppointmentsOfCounselor(counselorId: number, paginationQuery: PaginationQueryDto) {
-      const { page, limit, upcoming } = paginationQuery;
-      const currentDate = new Date();
-
-      const whereCondition = upcoming
-        ? { counselor: { id: counselorId }, appointmentDate: MoreThanOrEqual(currentDate) }
-        : { counselor: { id: counselorId } };
-
-      const [appointments, total] = await this.appointmentRepository.findAndCount({
-        where: whereCondition,
-        relations: ['counselor'],
-        take: limit,
-        skip: (page - 1) * limit,
-        order: { appointmentDate: 'ASC' },
-      });
-
-      return {
-        metaData: { total, page, limit },
-        data: appointments,
+    const { page, limit = 10, upcoming } = paginationQuery;
+    const currentDate = new Date();
+    
+    let whereCondition: any = { counselor: { id: counselorId } };
+    
+    if (upcoming === true) {
+      whereCondition = {
+        counselor: { id: counselorId },
+        appointmentDate: MoreThanOrEqual(currentDate)
       };
+    } else if (upcoming === false) {
+      whereCondition = {
+        counselor: { id: counselorId },
+        appointmentDate: LessThan(currentDate)
+      };
+    }
+    
+    const [appointments, total] = await this.appointmentRepository.findAndCount({
+      where: whereCondition,
+      relations: ['counselor'],
+      take: limit,
+      skip: (page - 1) * limit,
+      order: { appointmentDate: 'ASC' },
+    });
+    
+    const totalPages = Math.ceil(total / limit);
+    
+    return {
+      metaData: {
+        total,
+        currentPage: page,
+        totalPages,
+        limit
+      },
+      data: appointments,
+    };
   }
 
   async getAppointmentsOfUser(userId: number, paginationQuery: PaginationQueryDto) {
-
-
     const { page, limit = 10, upcoming } = paginationQuery;
     const currentDate = new Date();
 
-    const whereCondition = upcoming
-      ? { userId, appointmentDate: MoreThanOrEqual(currentDate) }
-      : { userId };
-
+    let whereCondition: any = { userId };
+    
+    if (upcoming === true) {
+      whereCondition = { 
+        userId, 
+        appointmentDate: MoreThanOrEqual(currentDate) 
+      };
+    } else if (upcoming === false) {
+      whereCondition = { 
+        userId, 
+        appointmentDate: LessThan(currentDate) 
+      };
+    }
+    
     const [appointments, total] = await this.appointmentRepository.findAndCount({
       where: whereCondition,
       relations: ['counselor'],
@@ -57,8 +82,15 @@ export class AppointmentService {
       order: { appointmentDate: 'ASC' },
     });
 
+    const totalPages = Math.ceil(total / limit);
+
     return {
-      metaData: { total, page, limit },
+      metaData: { 
+        total,
+        currentPage: page, 
+        totalPages,
+        limit 
+      },
       data: appointments,
     };
   }
@@ -179,7 +211,4 @@ export class AppointmentService {
           message: availableSlots.length ? 'Available slots found' : 'No available slots for this date',
       };
   }
-
-
-
 }
