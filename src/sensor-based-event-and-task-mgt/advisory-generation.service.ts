@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Between, Repository } from 'typeorm';
 import { DeviceAdvisory } from './entities/advisory.entity';
 import { FirebaseService } from 'src/notifications/firebase.service';
+import { GetDeviceAdvisoryDto } from './dto/get-sensor-based-tasks.dto';
 
 @Injectable()
 export class SensorBasedAdvisoryService {
@@ -54,4 +55,43 @@ export class SensorBasedAdvisoryService {
     });
     return lastTwoEntries
   }
+
+  async getAdvisories(deviceId: string, query: GetDeviceAdvisoryDto) {
+      const { page = 1, limit = 5 } = query;
+      if(!deviceId){
+        return {
+          advisories: null
+        }
+      }
+      const whereClause: any = { deviceId };
+      const [advisories, total] = await this.advisoryRepository.findAndCount({
+        where: whereClause,
+        order: { createdAt: 'DESC' },
+        skip: (page - 1) * limit,
+        take: limit,
+      });
+  
+      return {
+        total,
+        page,
+        limit,
+        advisories,
+      };
+    }
+
+    async lastEntry(deviceId: string) {
+      if (!deviceId) {
+        return {
+          advisory: null,
+        };
+      }
+      const advisory = await this.advisoryRepository.findOne({
+        where: { deviceId },
+        order: { createdAt: 'DESC' },
+      });
+  
+      return {
+        advisory,
+      };
+    }
 }
