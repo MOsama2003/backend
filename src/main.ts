@@ -12,7 +12,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
 
   const configService = app.get(ConfigService);
-  const port = configService.get<number>('PORT') || 3000; // Default to 3000 if not set
+  const port = configService.get<number>('PORT') || 3001; // Default to 3000 if not set
 
   // Enable JWT Auth Guard globally
   app.useGlobalGuards(new JwtAuthGuard());

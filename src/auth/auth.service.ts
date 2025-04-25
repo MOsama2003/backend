@@ -32,7 +32,9 @@ export class AuthService {
       role: user.role,
       id: user.id,
     };
-    return this.jwtService.sign(payload);
+    return this.jwtService.sign(payload,{
+      expiresIn: "7d"
+    });
   }
 
   async generateRefreshToken(user: { id: number }) {
