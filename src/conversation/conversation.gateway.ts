@@ -35,24 +35,22 @@ export class ConversationGateway
   }
 
   @SubscribeMessage('joinChatRoom')
-  handleJoinChatRoom(
-    @MessageBody() conversationId: { conversationId: string },
+  handleJoinRoom(
+    @MessageBody() data: { conversationId: number },
     @ConnectedSocket() socket: Socket,
   ) {
-    socket.join(`chat_${conversationId}`);
-    console.log(`User joined room: chat_${conversationId}`);
+    socket.join(`chat_${data.conversationId}`);
   }
 
   @SubscribeMessage('leaveChatRoom')
-  handleLeaveChatRoom(
-    @MessageBody() conversationId: { conversationId: string },
+  handleLeaveRoom(
+    @MessageBody() data: { conversationId: number },
     @ConnectedSocket() socket: Socket,
   ) {
-    socket.leave(`chat_${conversationId}`);
-    console.log(`User left room: chat_${conversationId}`);
+    socket.leave(`chat_${data.conversationId}`);
   }
 
-  sendMessageToRoom({conversationId, message}) {
+  sendMessageToRoom({ conversationId, message }) {
     this.server.to(`chat_${conversationId}`).emit('newMessage', message);
     console.log(`Broadcasting message to chat_${conversationId}:`, message);
   }
@@ -70,14 +68,12 @@ export class ConversationGateway
     console.log(`Broadcasting conversation update for ${conversationId}`);
   }
 
-  sendConversationMessageUpdate({receiverId, message}) {
+  sendConversationMessageUpdate({ receiverId, message }) {
     this.server.to(receiverId).emit('conversationMessageUpdate', {
-     message
+      message,
     });
-    console.log(
-      `conversationMessageUpdate sent to sender ${receiverId}:`,
-      { message }
-    );
+    console.log(`conversationMessageUpdate sent to sender ${receiverId}:`, {
+      message,
+    });
   }
-
 }

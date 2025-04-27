@@ -33,8 +33,8 @@ export class ConversationController {
   @Post('initiate')
   @ApiOperation({ summary: 'Initiate a new chat between users' })
   @ApiResponse({ status: 201, description: 'Chat initiated successfully' })
-  async initiateChat(@Body() createConversationDto: CreateConversationDto) {
-    return this.conversationService.initiateChat(createConversationDto);
+  async initiateChat(@Body() createConversationDto: CreateConversationDto, @Req() req: any) {
+    return this.conversationService.initiateChat(createConversationDto, req);
   }
 
   @Get('list')

@@ -29,112 +29,91 @@ export class ConversationService {
     private readonly chatGateway: ConversationGateway,
   ) {}
 
-  async initiateChat(data: CreateConversationDto): Promise<Conversation> {
+  async initiateChat(data: CreateConversationDto, req: any) {
     const { userIds } = data;
-    if (userIds.length < 2) {
-      throw new BadRequestException('At least two participants are required.');
-    }
-
-    const users = await this.userService.findUserByIds(userIds);
-    if (users.length !== userIds.length) {
-      throw new NotFoundException('Some users not found.');
-    }
-
-    const possibleChats = await this.conversationRepository.find({
-      where: {
-        conversationParticipants: { id: userIds[0] },
-      },
-      relations: ['conversationParticipants'],
-    });
-
-    const existingChat = possibleChats.find((chat) => {
-      return (
-        chat.conversationParticipants.length === users.length - 1 &&
-        chat.conversationParticipants.every((user) => userIds.includes(user.id))
+  
+    if (userIds.length !== 1) {
+      throw new BadRequestException(
+        'Exactly one userId must be provided to initiate a chat.',
       );
-    });
-
-    if (existingChat) return existingChat;
-
+    }
+  
+    const otherUserId = userIds[0];
+    const otherUser = await this.userService.findById(otherUserId);
+    if (!otherUser) {
+      throw new NotFoundException('User not found.');
+    }
+  
+    const loggedInUserId = req.user.id;
+  
+    // Step 1: Check if conversation already exists between these two users
+    const existingChat = await this.conversationRepository
+      .createQueryBuilder('conversation')
+      .innerJoin('conversation.conversationParticipants', 'participant1', 'participant1.id = :loggedInUserId', { loggedInUserId })
+      .innerJoin('conversation.conversationParticipants', 'participant2', 'participant2.id = :otherUserId', { otherUserId })
+      .getOne();
+  
+    if (existingChat) {
+      return existingChat;
+    }
+  
+    // Step 2: Create a new conversation if not exists
     const newChat = this.conversationRepository.create({
-      conversationParticipants: users,
+      conversationParticipants: [
+        { id: loggedInUserId } as any, 
+        { id: otherUserId } as any,
+      ],
     });
-
-    return this.conversationRepository.save(newChat);
+  
+    return await this.conversationRepository.save(newChat);
   }
-
+  
   async chatListing(req: any, data: PaginationQueryDto) {
     const { limit = 10, page = 1 } = data;
     const userId = req.user.id;
-
-    const [conversations, total] =
-      await this.conversationRepository.findAndCount({
-        relations: ['conversationParticipants', 'messages', 'messages.sender'],
-        take: limit,
-        skip: (page - 1) * limit,
-      });
-
-    const userConversations = conversations.filter((convo) =>
-      convo.conversationParticipants.some(
-        (participant) => participant.id === userId,
-      ),
-    );
-
-    const sortedConversations = userConversations.sort((a, b) => {
-      const lastMessageA =
-        a.messages.sort(
-          (m1, m2) => m2.createdAt.getTime() - m1.createdAt.getTime(),
-        )[0] || null;
-      const lastMessageB =
-        b.messages.sort(
-          (m1, m2) => m2.createdAt.getTime() - m1.createdAt.getTime(),
-        )[0] || null;
-
-      const timeA =
-        lastMessageA?.createdAt?.getTime() || a.createdAt?.getTime() || 0;
-      const timeB =
-        lastMessageB?.createdAt?.getTime() || b.createdAt?.getTime() || 0;
-
-      return timeB - timeA; // Sort descending
-    });
-
-    const chatList = sortedConversations.map((conversation) => {
+  
+    const qb = this.conversationRepository
+      .createQueryBuilder('conversation')
+      .innerJoin('conversation.conversationParticipants', 'participant', 'participant.id = :userId', { userId })
+      .leftJoinAndSelect('conversation.conversationParticipants', 'participants')
+      .leftJoinAndSelect('conversation.messages', 'messages')
+      .leftJoinAndSelect('messages.sender', 'sender')
+      .orderBy('conversation.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+  
+    const [conversations, total] = await qb.getManyAndCount();
+  
+    const chatList = conversations.map((conversation) => {
       const otherUser = conversation.conversationParticipants.find(
         (user) => user.id !== userId,
       );
-      const lastMessage =
-        conversation.messages.length > 0
-          ? conversation.messages.sort(
-              (m1, m2) => m2.createdAt.getTime() - m1.createdAt.getTime(),
-            )[0]
-          : null;
-
-      const unreadCount = conversation.messages.filter(
-        (msg) =>
-          msg.status === DeliveryStatus.DELIVER && msg.sender.id !== userId,
-      ).length;
-
+  
+      const lastMessage = conversation.messages
+        ?.sort((m1, m2) => m2.createdAt.getTime() - m1.createdAt.getTime())[0] || null;
+  
+      const unreadCount = conversation.messages?.filter(
+        (msg) => msg.status === DeliveryStatus.DELIVER && msg.sender.id !== userId,
+      ).length || 0;
+  
       return {
-        conversationId: conversation.conversationtId,
+        conversationId: conversation.conversationtId, // fixed typo
         userId: otherUser?.id || null,
-        userName: otherUser
-          ? `${otherUser.firstName} ${otherUser.lastName}`
-          : 'Unknown',
+        userName: otherUser ? `${otherUser.firstName} ${otherUser.lastName}` : 'Unknown',
         avatar: otherUser?.avatar || null,
-        lastMessage: lastMessage || null, // ✅ Returns full message object
-        lastMessageTime: lastMessage?.createdAt || conversation.createdAt,
-        unreadCount: unreadCount,
+        lastMessage,
+        unreadCount,
       };
     });
-
+  
     return {
       data: chatList,
       totalChats: total,
-      currentPage: page,
+      currentPage: Number(page),
       totalPages: Math.ceil(total / limit),
     };
   }
-
+  
   async sendMessage(
     @UploadedFile() file: Express.Multer.File,
     sendMessageDto: SendMessage,
@@ -153,7 +132,7 @@ export class ConversationService {
 
     const conversation = await this.conversationRepository.findOne({
       where: { conversationtId: Number(conversationId) },
-      relations: ['conversationParticipants']
+      relations: ['conversationParticipants'],
     });
 
     if (!conversation) {
@@ -167,7 +146,7 @@ export class ConversationService {
       status: DeliveryStatus.SEND,
       conversation,
       broadcastId,
-      createdAt: new Date()
+      createdAt: new Date(),
     });
 
     const savedMessage = await this.messagesRepository.save(message);
@@ -180,7 +159,7 @@ export class ConversationService {
     const participantIds = conversation.conversationParticipants.map(
       (p) => p.id,
     );
-    
+
     this.chatGateway.sendConversationUpdate({
       participants: participantIds,
       conversationId,
@@ -261,7 +240,7 @@ export class ConversationService {
         sender: { id: Not(userId) },
         conversation: { conversationtId: Number(conversationId) },
       },
-      relations: ['conversation','sender'],
+      relations: ['conversation', 'sender'],
     });
 
     if (!message) {
@@ -278,17 +257,15 @@ export class ConversationService {
       { status: DeliveryStatus.SEEN },
     );
 
-    await this.chatGateway.sendConversationMessageUpdate(
-      {
-        receiverId: message.sender.id.toString(),
-        message: {
-          text : message.text,
-          user: message.sender,
-          messageId: message.messageId,
-          status: DeliveryStatus.SEEN
-        }
-      }
-    )
+    await this.chatGateway.sendConversationMessageUpdate({
+      receiverId: message.sender.id.toString(),
+      message: {
+        text: message.text,
+        user: message.sender,
+        messageId: message.messageId,
+        status: DeliveryStatus.SEEN,
+      },
+    });
 
     return { message: 'Messages marked as seen' };
   }
@@ -305,7 +282,7 @@ export class ConversationService {
         conversation: { conversationtId: Number(conversationId) },
         status: DeliveryStatus.SEND,
       },
-      relations:['sender']
+      relations: ['sender'],
     });
 
     if (!message) {
@@ -315,17 +292,15 @@ export class ConversationService {
     message.status = DeliveryStatus.DELIVER;
     await this.messagesRepository.save(message);
 
-    await this.chatGateway.sendConversationMessageUpdate(
-      {
-        receiverId: message.sender.id.toString(),
-        message: {
-          text : message.text,
-          user: message.sender,
-          messageId: message.messageId,
-          status: DeliveryStatus.DELIVER
-        }
-      }
-    )
+    await this.chatGateway.sendConversationMessageUpdate({
+      receiverId: message.sender.id.toString(),
+      message: {
+        text: message.text,
+        user: message.sender,
+        messageId: message.messageId,
+        status: DeliveryStatus.DELIVER,
+      },
+    });
 
     return { message: 'Message marked as delivered' };
   }
