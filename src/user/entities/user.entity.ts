@@ -1,6 +1,7 @@
 import { IsNotEmpty, MinLength, IsEmail } from 'class-validator';
 import { Blog } from 'src/blog/entities/blog.entity';
 import { Message } from 'src/consult-ai-chat/entities/message.entity';
+import { Farm } from 'src/farm-task-advisory/entities/farm.entity';
 import { Comment } from 'src/feed/entities/comment.entity';
 import { Feed } from 'src/feed/entities/feed.entity';
 import { Reaction } from 'src/feed/entities/reaction.entity';
@@ -79,4 +80,8 @@ export class User {
 
   @OneToOne(() => RequestedCounsellar, (counsellor) => counsellor.user)
   counsellorProfile: RequestedCounsellar;
+  
+  @OneToMany(() => Farm, (farm) => farm.user)
+  farms: Farm[];
+
 }

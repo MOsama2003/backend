@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
+import { v2 as cloudinary, DeleteApiResponse, UploadApiResponse } from 'cloudinary';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import multer from 'multer';
 
@@ -35,6 +35,17 @@ export class CloudinaryService {
           resolve(result);
         }
       ).end(file.buffer);
+    });
+  }
+
+  async deleteFile(publicId: string): Promise<DeleteApiResponse | undefined> {
+    return new Promise((resolve, reject) => {
+      cloudinary.uploader.destroy(publicId, (error, result) => {
+        if (error) {
+          return reject(error);
+        }
+        resolve(result);
+      });
     });
   }
 }

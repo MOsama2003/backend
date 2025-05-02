@@ -17,6 +17,9 @@ import { ConsultAiChatModule } from './consult-ai-chat/consult-ai-chat.module';
 import { ConversationModule } from './conversation/conversation.module';
 import { StripeModule } from './stripe/stripe.module';
 import { StreamModule } from './stream/stream.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { FarmModule } from './farm-task-advisory/farm.module';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -37,6 +40,8 @@ import { StreamModule } from './stream/stream.module';
         entities: [__dirname + "/**/*.entity{.ts,.js}"]
       }),
     }),
+    HttpModule,
+    ScheduleModule.forRoot(),
     UserModule,
     AuthModule,
     CloudinaryModule,
@@ -53,7 +58,8 @@ import { StreamModule } from './stream/stream.module';
     ConversationModule,
     NotificationsModule,
     StripeModule,
-    StreamModule
+    StreamModule,
+    FarmModule ,
   ],
   controllers: [],
   providers: [],
