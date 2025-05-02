@@ -23,14 +23,16 @@ export class SensorBasedTaskService {
       createdAt: new Date(),
     }));
 
-    await this.notificationService.sendNotification(
-      {
-        title: 'New Tasks added for today',
-        body: 'check Tasks',
-        data: tasks,
-      },
-      +req.user.id,
-    );
+    if(req?.user?.id){
+      await this.notificationService.sendNotification(
+        {
+          title: 'New Tasks added for today',
+          body: 'check Tasks',
+          data: tasks,
+        },
+        +req.user.id,
+      );
+    }
 
     return this.taskRepository.save(taskEntities);
   }
@@ -76,14 +78,16 @@ export class SensorBasedTaskService {
       );
     }
 
-    await this.notificationService.sendNotification(
-      {
-        title: 'Existing tasks has been updated',
-        body: 'check Events',
-        data: updatedTasks,
-      },
-      +req.user.id,
-    );
+    if(req.user.id){
+      await this.notificationService.sendNotification(
+        {
+          title: 'Existing tasks has been updated',
+          body: 'check Events',
+          data: updatedTasks,
+        },
+        +req.user.id,
+      );
+    }
   }
 
   async getTasksOfWholeWeek(deviceId: string): Promise<DeviceTasks[]> {
