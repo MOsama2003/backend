@@ -20,11 +20,14 @@ export class SensorBasedAdvisoryService {
       createdAt: new Date(),
     }));
 
-    await this.notificationService.sendNotification({
-      title : 'New Advisories added for today',
-      body: 'check Events',
-      data: advisories
-    }, +req.user.id)
+    if (req?.user?.id) {
+      await this.notificationService.sendNotification({
+        title: 'New Advisories added for today',
+        body: 'check Events',
+        data: advisories,
+      }, +req.user.id);
+    }
+    
     
     return this.advisoryRepository.save(advisoryEntities);
   }

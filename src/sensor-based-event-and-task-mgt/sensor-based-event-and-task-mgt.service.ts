@@ -83,7 +83,7 @@ export class SensorBasedEventAndTaskMgtService {
         ? latestNKP.map((entry) => JSON.parse(JSON.stringify(entry)))
         : [],
     };
-    const response = await fetch('http://0.0.0.0:8082/events', {
+    const response = await fetch('http://4.240.104.187:8000/events', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -116,7 +116,7 @@ export class SensorBasedEventAndTaskMgtService {
         ? advisories.map((entry) => JSON.parse(JSON.stringify(entry)))
         : [],
     };
-    const response = await fetch('http://0.0.0.0:8082/generate-tasks', {
+    const response = await fetch('http://4.240.104.187:8000/generate-tasks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -153,7 +153,7 @@ export class SensorBasedEventAndTaskMgtService {
         ? tasks.map((entry) => JSON.parse(JSON.stringify(entry)))
         : [],
     };
-    const response = await fetch('http://0.0.0.0:8082/updated-tasks', {
+    const response = await fetch('http://4.240.104.187:8000/updated-tasks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -191,7 +191,7 @@ export class SensorBasedEventAndTaskMgtService {
         ? tasks.map((entry) => JSON.parse(JSON.stringify(entry)))
         : [],
     };
-    const response = await fetch('http://0.0.0.0:8082/generate-report', {
+    const response = await fetch('http://4.240.104.187:8000/generate-report', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),

@@ -32,14 +32,16 @@ export class SensorBasedWeeklySummaryService {
       });
     });
 
-    await this.notificationService.sendNotification(
-      {
-        title: 'Weekly report is here',
-        body: 'check your report',
-        data: reportEntities,
-      },
-      +req.user.id,
-    );
+    if(req?.user?.id){
+      await this.notificationService.sendNotification(
+        {
+          title: 'Weekly report is here',
+          body: 'check your report',
+          data: reportEntities,
+        },
+        +req.user.id,
+      );
+    }
 
     return this.advisoryRepository.save(reportEntities);
   }
