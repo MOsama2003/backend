@@ -17,9 +17,17 @@ export class PaginationQueryDto {
   @Min(1)
   limit: number = 10;
 
-  @ApiPropertyOptional({ description: 'Only fetch upcoming appointments' })
+
+  @ApiPropertyOptional({ 
+    description: 'Only fetch upcoming appointments. true = upcoming, false = past, null/undefined = all',
+    nullable: true
+  })
   @IsOptional()
-  @Transform(({ value }) => value === 'true')
-  @IsBoolean()
-  upcoming?: boolean;
+  @Transform(({ value }) => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return null;
+  })
+  @IsBoolean({ each: false })
+  upcoming?: boolean | null;
 }

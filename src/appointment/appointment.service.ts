@@ -19,6 +19,7 @@ export class AppointmentService {
 
   async getAppointmentsOfCounselor(counselorId: number, paginationQuery: PaginationQueryDto) {
     const { page, limit = 10, upcoming } = paginationQuery;
+    counselorId = 10
     const currentDate = new Date();
     
     let whereCondition: any = { counselor: { id: counselorId } };
@@ -33,6 +34,10 @@ export class AppointmentService {
         counselor: { id: counselorId },
         appointmentDate: LessThan(currentDate)
       };
+    } else if (upcoming === undefined || upcoming === null) {
+      whereCondition = { 
+        counselor: { id: counselorId }, 
+      };
     }
     
     const [appointments, total] = await this.appointmentRepository.findAndCount({
@@ -40,7 +45,7 @@ export class AppointmentService {
       relations: ['counselor'],
       take: limit,
       skip: (page - 1) * limit,
-      order: { appointmentDate: 'ASC' },
+      order: { appointmentDate: 'DESC' },
     });
     
     const totalPages = Math.ceil(total / limit);
@@ -72,6 +77,10 @@ export class AppointmentService {
         userId, 
         appointmentDate: LessThan(currentDate) 
       };
+    } else if (upcoming === undefined || upcoming === null) {
+      whereCondition = { 
+        userId, 
+      };
     }
     
     const [appointments, total] = await this.appointmentRepository.findAndCount({
@@ -79,7 +88,7 @@ export class AppointmentService {
       relations: ['counselor'],
       take: limit,
       skip: (page - 1) * limit,
-      order: { appointmentDate: 'ASC' },
+      order: { appointmentDate: 'DESC' },
     });
 
     const totalPages = Math.ceil(total / limit);
