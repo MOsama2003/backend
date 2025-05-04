@@ -153,7 +153,7 @@ export class BlogService {
   }
 
   findOne(id: number) {
-    return this.blogRepository.findOne({where : {id}});
+    return this.blogRepository.findOne({where : {id}, relations: ['user']});
   }
 
   remove(id: number) {
