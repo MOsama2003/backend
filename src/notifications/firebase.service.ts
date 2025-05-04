@@ -6,6 +6,8 @@ import { Repository } from 'typeorm';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { Notification } from './entities/notification.entity';
 import { ConfigService } from '@nestjs/config';
+import path from 'path';
+import * as fs from 'fs';
 
 @Injectable()
 export class FirebaseService implements OnModuleInit {
@@ -15,16 +17,20 @@ export class FirebaseService implements OnModuleInit {
     private readonly notificationRepository: Repository<Notification>,
     private readonly userService: UserService,
   ) {}
-  async onModuleInit() {
-    const firebaseConfig = JSON.parse(
-      this.configService.get<string>('GOOGLE_APPLICATION_CREDENTIALS_JSON') ||
-        '{}',
-    );
-
-    admin.initializeApp({
-      credential: admin.credential.cert(firebaseConfig),
-    });
+ 
+async onModuleInit() {
+  const keyPath = this.configService.get<string>('GOOGLE_APPLICATION_CREDENTIALS_PATH');
+  if (!keyPath) {
+    throw new Error('Firebase key path not configured');
   }
+
+  const absolutePath = path.resolve(keyPath);
+  const firebaseConfig = JSON.parse(fs.readFileSync(absolutePath, 'utf8'));
+
+  admin.initializeApp({
+    credential: admin.credential.cert(firebaseConfig),
+  });
+}
 
   async sendNotification(
     Notificationbody: CreateNotificationDto,
@@ -39,6 +45,7 @@ export class FirebaseService implements OnModuleInit {
       return;
     }
   
+    console.log(user.fcmToken.trim(),'user.fcmToken.trim()')
     const message = {
       notification: { title, body },
       token: user.fcmToken.trim(),
@@ -47,6 +54,7 @@ export class FirebaseService implements OnModuleInit {
   
     try {
       await admin.messaging().send(message);
+      console.log('✅ Notification sent successfully');
     } catch (err) {
       console.error(`Error sending FCM to user ID ${userId}:`, err.message);
       // You might want to handle invalid token here (e.g., remove token if permanently invalid)
@@ -68,7 +76,7 @@ export class FirebaseService implements OnModuleInit {
     if (!fcmToken) {
       throw new BadRequestException('User does not have an FCM token.');
     }
-    await admin.messaging().subscribeToTopic(fcmToken, 'global_notifications');
+    await admin.messaging().subscribeToTopic([fcmToken], 'global_notifications');
   }
 
   async sendGlobalNotification(Notificationbody: CreateNotificationDto) {
@@ -80,6 +88,7 @@ export class FirebaseService implements OnModuleInit {
       data: data || {},
     };
 
+    console.log('✅global Notification sent successfully')
     await admin.messaging().send(message);
   }
 
