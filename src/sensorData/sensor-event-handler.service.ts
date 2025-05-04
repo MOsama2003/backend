@@ -21,7 +21,12 @@ export class SensorEventHandlerService {
       `✅ Advisory generated for ${event.deviceId}, triggering task creation...`,
     );
     this.sensorTaskService.addTasks(event.deviceId, event.req);
-
+    this.logger.log(
+      `✅ Tasks generated for ${event.deviceId}, triggering task creation...`,
+    );
     this.sensorTaskService.updateTasks(event.deviceId, event.req);
+    this.logger.log(
+      `✅ Task update generated for ${event.deviceId}, triggering task creation...`,
+    );
   }
 }
