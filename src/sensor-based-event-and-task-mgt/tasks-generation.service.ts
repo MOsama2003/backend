@@ -78,7 +78,7 @@ export class SensorBasedTaskService {
       );
     }
 
-    if(req.user.id){
+    if(req?.user?.id){
       await this.notificationService.sendNotification(
         {
           title: 'Existing tasks has been updated',

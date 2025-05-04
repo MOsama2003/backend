@@ -9,19 +9,19 @@ export class DeviceTasks {
 
     @IsString()
     @IsNotEmpty()
-    @Column({ type: 'text' })
+    @Column({ type: 'text',nullable: true })
     taskTitle: string;
 
     @IsString()
     @IsNotEmpty()
-    @Column({ type: 'text' })
+    @Column({ type: 'text',nullable: true })
     taskDescription: string;
 
-    @Column({ type: 'enum', enum: TaskSeverity })
+    @Column({ type: 'enum', enum: TaskSeverity , nullable: true})
     @IsEnum(TaskSeverity)
     taskSeverity: TaskSeverity;
 
-    @Column({ type: 'enum', enum: TaskStatus })
+    @Column({ type: 'enum', enum: TaskStatus, nullable: true })
     @IsEnum(TaskStatus)
     taskStatus: TaskStatus;
 

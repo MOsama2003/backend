@@ -5,13 +5,13 @@ export class WeeklyFarmReport {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'simple-array' })
+  @Column({ type: 'simple-array', nullable: true })
   farmHealth: string[];
 
-  @Column({ type: 'simple-array' })
+  @Column({ type: 'simple-array',nullable: true })
   riskAnalysis: string[];
 
-  @Column({ type: 'simple-array' })
+  @Column({ type: 'simple-array',nullable: true })
   yieldForecast: string[];
 
   @CreateDateColumn()

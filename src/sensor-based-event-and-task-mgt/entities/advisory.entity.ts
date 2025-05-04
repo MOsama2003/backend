@@ -8,22 +8,22 @@ export class DeviceAdvisory {
 
     @IsString()
     @IsNotEmpty()
-    @Column({ type: 'text' })
+    @Column({ type: 'text',nullable: true })
     title: string;
 
     @IsString()
     @IsNotEmpty()
-    @Column({ type: 'text' })
+    @Column({ type: 'text',nullable: true })
     precaution: string;
 
     @IsString()
     @IsNotEmpty()
-    @Column({ type: 'text' })
+    @Column({ type: 'text', nullable: true })
     risk_factors: string;
 
     @IsString()
     @IsNotEmpty()
-    @Column({ type: 'text' })
+    @Column({ type: 'text', nullable: true })
     recommended_action: string;
 
     @IsString()
