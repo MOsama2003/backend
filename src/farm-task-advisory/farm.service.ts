@@ -75,7 +75,7 @@ export class FarmService {
   async getFarms(userId: string): Promise<Farm[]> {
     return this.farmRepository.find({
       where: { userId },
-      relations: ['images', 'reports', 'tasks', 'advisories'],
+      // relations: ['images', 'reports', 'tasks', 'advisories'],
     });
   }
 

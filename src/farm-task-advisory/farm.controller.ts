@@ -30,7 +30,7 @@ export type FarmWithUpdateStatus = Farm & {
 
 @ApiTags('farms')
 @ApiBearerAuth() 
-@Controller('farms')
+@Controller('farm')
 @UseGuards(JwtAuthGuard)
 export class FarmController {
   constructor(
