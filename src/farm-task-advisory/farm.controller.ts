@@ -24,9 +24,7 @@ import { FarmService } from './farm.service';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 
-export type FarmWithUpdateStatus = Farm & {
-  updateRequired: boolean;
-};
+
 
 @ApiTags('farms')
 @ApiBearerAuth() 
@@ -55,14 +53,12 @@ export class FarmController {
   async getFarm(
     @Request() req,
     @Param('id') id: string,
-  ): Promise<FarmWithUpdateStatus> {
+  ): Promise<Farm> {
     const farm = await this.farmService.getFarmById(req.user.id, id);
     
-    const updateRequired = await this.farmService.checkWeeklyUpdateRequired(id);
     
     return {
       ...farm,
-      updateRequired,
     };
   }
 

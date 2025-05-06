@@ -95,6 +95,7 @@ export class FarmService {
   async updateFarm(userId: string, farmId: string, updateFarmDto: UpdateFarmDto): Promise<Farm> {
     const farm = await this.getFarmById(userId, farmId);
     
+    
     if (updateFarmDto.name !== undefined) farm.name = updateFarmDto.name;
     if (updateFarmDto.farmLocation !== undefined) farm.farmLocation = updateFarmDto.farmLocation;
     if (updateFarmDto.totalLandArea !== undefined) farm.totalLandArea = updateFarmDto.totalLandArea;
@@ -128,22 +129,6 @@ export class FarmService {
     await this.farmRepository.remove(farm);
   }
   
-  async deleteFarm1(userId: string, farmId: string): Promise<void> {
-    
-    const farmImages = await this.farmImageRepository.find({
-      where: { farm: { id: farmId, userId } },
-      select: ['publicId']
-    });
-    
-    
-    if (farmImages.length > 0) {
-      await Promise.all(
-        farmImages.map(image => this.cloudinaryService.deleteFile(image.publicId))
-      );
-    }
-    
-    await this.farmRepository.delete({ id: farmId, userId });
-  }
 
   async uploadFarmImages(userId: string, farmId: string, files: Express.Multer.File[]): Promise<Farm> {
     if (files.length < 3) {
@@ -343,37 +328,6 @@ export class FarmService {
     return this.farmTaskRepository.save(task);
   }
 
-  async checkWeeklyUpdateRequired(farmId: string): Promise<boolean> {
-    const farm = await this.farmRepository.findOne({
-      where: { id: farmId },
-    });
-    
-    if (!farm) {
-      throw new NotFoundException('Farm not found');
-    }
-    
-    if (!farm.lastUpdateDate) {
-      return true;
-    }
-    
-    const now = new Date();
-    const lastUpdateDate = new Date(farm.lastUpdateDate);
-    
-    const isMonday = now.getDay() === 1;
-    const lastUpdateDay = lastUpdateDate.getDay();
-    const lastUpdateWeek = this.getWeekNumber(lastUpdateDate);
-    const currentWeek = this.getWeekNumber(now);
-    
-    return isMonday && (lastUpdateWeek !== currentWeek || lastUpdateDay !== 1);
-  }
-
-  private getWeekNumber(date: Date): number {
-    const d = new Date(date);
-    d.setHours(0, 0, 0, 0);
-    d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
-    const week1 = new Date(d.getFullYear(), 0, 4);
-    return 1 + Math.round(((d.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
-  }
 
   // @Cron('0 0 * * 1')
   // async handleWeeklyResetForFarms() {
