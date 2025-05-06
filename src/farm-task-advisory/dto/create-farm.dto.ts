@@ -1,0 +1,83 @@
+// dto/create-farm.dto.ts
+
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEnum, IsBoolean, IsDateString, IsString, IsNumber, IsArray, Min } from 'class-validator';
+import { 
+  SoilType, 
+  WaterSource, 
+  GrowthStage, 
+  IrrigationType, 
+  WaterAvailability,
+  FertilizerType, 
+} from 'src/constants';
+
+export class CreateFarmDto {
+  
+  @ApiProperty({ description: 'Name of Farm', example: 'Gray Rice North' })
+  @IsString()
+  name: string;
+  
+  
+  @ApiProperty({ description: 'Total land area in acres', example: 1 })
+  @IsNumber()
+  @Min(0.1)
+  totalLandArea: number; 
+
+  @ApiProperty({ description: 'Farm location as a Google Maps API location name', example: 'Karachi, Pakistan' })
+  @IsString()
+  farmLocation: string; 
+
+  @ApiProperty({ description: 'Latitude of the farm', example:31.427, required: false })
+  @IsNumber()
+  latitude?: number;
+
+  @ApiProperty({ description: 'Longitude of the farm', example: 73.1166, required: false })
+  @IsNumber()
+  longitude?: number;
+
+  @ApiProperty({ enum: SoilType, description: 'Type of soil on the farm', example: SoilType.CLAY })
+  @IsEnum(SoilType)
+  soilType: SoilType;
+
+  @ApiProperty({ enum: WaterSource, description: 'Primary water source for the farm', example: WaterSource.RIVER })
+  @IsEnum(WaterSource)
+  waterSource: WaterSource;
+
+  @ApiProperty({ description: 'Name of crop being cultivated', example: 'Wheat' })
+  @IsString()
+  crop: string;
+
+  @ApiProperty({ description: 'Date of sowing in YYYY-MM-DD format', example: '2025-03-15' })
+  @IsDateString()
+  sowingDate: string;
+
+  @ApiProperty({ enum: GrowthStage, description: 'Current growth stage of the crop', example: GrowthStage.VEGETATIVE })
+  @IsEnum(GrowthStage)
+  currentGrowthStage: GrowthStage;
+
+
+  @ApiProperty({ description: 'Indicates whether past pest issues have occurred', example: false })
+  @IsBoolean()
+  pastPestIssues: boolean;
+
+
+  @ApiProperty({ enum: IrrigationType, description: 'Type of irrigation system used', example: IrrigationType.DRIP })
+  @IsEnum(IrrigationType)
+  irrigationType: IrrigationType;
+
+  @ApiProperty({ enum: WaterAvailability, description: 'Current water availability status', example: WaterAvailability.SUFFICIENT })
+  @IsEnum(WaterAvailability)
+  waterAvailabilityStatus: WaterAvailability;
+
+  @ApiProperty({ 
+    type: [String],
+    enum: FertilizerType, 
+    description: 'List of fertilizers used on the farm', 
+    example: [FertilizerType.NPK, FertilizerType.ORGANIC] 
+  })
+  @IsArray()
+  @IsEnum(FertilizerType, { each: true })
+  fertilizersUsed: FertilizerType[];
+
+}
+
