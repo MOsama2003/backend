@@ -31,81 +31,105 @@ export class ConversationService {
 
   async initiateChat(data: CreateConversationDto, req: any) {
     const { userIds } = data;
-  
+
     if (userIds.length !== 1) {
       throw new BadRequestException(
         'Exactly one userId must be provided to initiate a chat.',
       );
     }
-  
+
     const otherUserId = userIds[0];
     const otherUser = await this.userService.findById(otherUserId);
     if (!otherUser) {
       throw new NotFoundException('User not found.');
     }
-  
+
     const loggedInUserId = req.user.id;
-  
+
     // Step 1: Check if conversation already exists between these two users
     const existingChat = await this.conversationRepository
       .createQueryBuilder('conversation')
-      .innerJoin('conversation.conversationParticipants', 'participant1', 'participant1.id = :loggedInUserId', { loggedInUserId })
-      .innerJoin('conversation.conversationParticipants', 'participant2', 'participant2.id = :otherUserId', { otherUserId })
+      .innerJoin(
+        'conversation.conversationParticipants',
+        'participant1',
+        'participant1.id = :loggedInUserId',
+        { loggedInUserId },
+      )
+      .innerJoin(
+        'conversation.conversationParticipants',
+        'participant2',
+        'participant2.id = :otherUserId',
+        { otherUserId },
+      )
       .getOne();
-  
+
     if (existingChat) {
       return existingChat;
     }
-  
+
     // Step 2: Create a new conversation if not exists
     const newChat = this.conversationRepository.create({
       conversationParticipants: [
-        { id: loggedInUserId } as any, 
+        { id: loggedInUserId } as any,
         { id: otherUserId } as any,
       ],
     });
-  
+
     return await this.conversationRepository.save(newChat);
   }
-  
+
   async chatListing(req: any, data: PaginationQueryDto) {
     const { limit = 10, page = 1 } = data;
     const userId = req.user.id;
-  
+
     const qb = this.conversationRepository
       .createQueryBuilder('conversation')
-      .innerJoin('conversation.conversationParticipants', 'participant', 'participant.id = :userId', { userId })
-      .leftJoinAndSelect('conversation.conversationParticipants', 'participants')
+      .innerJoin(
+        'conversation.conversationParticipants',
+        'participant',
+        'participant.id = :userId',
+        { userId },
+      )
+      .leftJoinAndSelect(
+        'conversation.conversationParticipants',
+        'participants',
+      )
       .leftJoinAndSelect('conversation.messages', 'messages')
       .leftJoinAndSelect('messages.sender', 'sender')
-      .orderBy('conversation.createdAt', 'DESC')
+      .orderBy('messages.createdAt', 'DESC')
       .skip((page - 1) * limit)
       .take(limit);
-  
+
     const [conversations, total] = await qb.getManyAndCount();
-  
+
     const chatList = conversations.map((conversation) => {
       const otherUser = conversation.conversationParticipants.find(
         (user) => user.id !== userId,
       );
-  
-      const lastMessage = conversation.messages
-        ?.sort((m1, m2) => m2.createdAt.getTime() - m1.createdAt.getTime())[0] || null;
-  
-      const unreadCount = conversation.messages?.filter(
-        (msg) => msg.status === DeliveryStatus.DELIVER && msg.sender.id !== userId,
-      ).length || 0;
-  
+
+      const lastMessage =
+        conversation.messages?.sort(
+          (m1, m2) => m2.createdAt.getTime() - m1.createdAt.getTime(),
+        )[0] || null;
+
+      const unreadCount =
+        conversation.messages?.filter(
+          (msg) =>
+            msg.status === DeliveryStatus.DELIVER && msg.sender.id !== userId,
+        ).length || 0;
+
       return {
         conversationId: conversation.conversationtId, // fixed typo
         userId: otherUser?.id || null,
-        userName: otherUser ? `${otherUser.firstName} ${otherUser.lastName}` : 'Unknown',
+        userName: otherUser
+          ? `${otherUser.firstName} ${otherUser.lastName}`
+          : 'Unknown',
         avatar: otherUser?.avatar || null,
         lastMessage,
         unreadCount,
       };
     });
-  
+
     return {
       data: chatList,
       totalChats: total,
@@ -113,7 +137,7 @@ export class ConversationService {
       totalPages: Math.ceil(total / limit),
     };
   }
-  
+
   async sendMessage(
     @UploadedFile() file: Express.Multer.File,
     sendMessageDto: SendMessage,
