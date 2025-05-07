@@ -131,9 +131,11 @@ export class FarmService {
   
 
   async uploadFarmImages(userId: string, farmId: string, files: Express.Multer.File[]): Promise<Farm> {
+    
     if (files.length < 3) {
       throw new BadRequestException('At least 3 images are required');
     }
+    
 
     const farm = await this.getFarmById(userId, farmId);
     
