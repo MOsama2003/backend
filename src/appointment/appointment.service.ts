@@ -19,6 +19,7 @@ export class AppointmentService {
 
   async getAppointmentsOfCounselor(counselorId: number, paginationQuery: PaginationQueryDto) {
     const { page, limit = 10, upcoming } = paginationQuery;
+    counselorId = 10
     const currentDate = new Date();
     
     let whereCondition: any = { counselor: { id: counselorId } };
@@ -33,6 +34,10 @@ export class AppointmentService {
         counselor: { id: counselorId },
         appointmentDate: LessThan(currentDate)
       };
+    } else if (upcoming === undefined || upcoming === null) {
+      whereCondition = { 
+        counselor: { id: counselorId }, 
+      };
     }
     
     const [appointments, total] = await this.appointmentRepository.findAndCount({
@@ -40,7 +45,7 @@ export class AppointmentService {
       relations: ['counselor'],
       take: limit,
       skip: (page - 1) * limit,
-      order: { appointmentDate: 'ASC' },
+      order: { appointmentDate: 'DESC' },
     });
     
     const totalPages = Math.ceil(total / limit);
@@ -72,6 +77,10 @@ export class AppointmentService {
         userId, 
         appointmentDate: LessThan(currentDate) 
       };
+    } else if (upcoming === undefined || upcoming === null) {
+      whereCondition = { 
+        userId, 
+      };
     }
     
     const [appointments, total] = await this.appointmentRepository.findAndCount({
@@ -79,7 +88,7 @@ export class AppointmentService {
       relations: ['counselor'],
       take: limit,
       skip: (page - 1) * limit,
-      order: { appointmentDate: 'ASC' },
+      order: { appointmentDate: 'DESC' },
     });
 
     const totalPages = Math.ceil(total / limit);
@@ -145,14 +154,21 @@ export class AppointmentService {
       if (isNaN(parsedDate.getTime())) {
           throw new BadRequestException('Invalid date format');
       }
+      
       parsedDate.setHours(0, 0, 0, 0);
+      
+      // Checking if date is in the past
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (parsedDate < today) {
+          throw new BadRequestException('Cannot book appointments for past dates');
+      }
       
       const counselor = await this.counselorRepository.findOne({
           where: { id: counselorId },
           select: ['workingDays', 'startTime', 'endTime'],
       });
-
-      console.log(counselor)
 
       if (!counselor) {
           throw new BadRequestException('Counselor not found');
@@ -166,7 +182,6 @@ export class AppointmentService {
           return { message: 'Counselor is unavailable on this date', availableSlots: [] };
       }
 
-      
       if (!counselor.startTime || !counselor.endTime) {
           throw new BadRequestException('Counselor working hours not set');
       }
@@ -186,7 +201,6 @@ export class AppointmentService {
           allSlots.push(slot.toISOString());
       }
 
-      // fetching already booked appointments for the selected day
       const startOfDay = new Date(parsedDate);
       const endOfDay = new Date(parsedDate);
       endOfDay.setHours(23, 59, 59, 999);
@@ -199,7 +213,6 @@ export class AppointmentService {
           select: ['appointmentDate'],
       });
 
-      // filter booked slots
       const availableSlots = allSlots.filter(
           (slot) => !bookedAppointments.some((appt) => appt.appointmentDate.toISOString() === slot),
       );

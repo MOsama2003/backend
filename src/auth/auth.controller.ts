@@ -40,7 +40,7 @@ export class AuthController {
       type: 'object',
       properties: {
         email: { type: 'string', example: 'mo354598@gmail.com' },
-        password: { type: 'string', example: 'string' },
+        password: { type: 'string', example: 'string123' },
         fcmToken: { type: 'string', example: 'null' },
       },
       required: ['email', 'password', 'fcmToken'],

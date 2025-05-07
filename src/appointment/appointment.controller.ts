@@ -84,7 +84,7 @@ export class AppointmentController {
   @ApiResponse({ status: 200, description: 'Available slots retrieved successfully' })
   @ApiResponse({ status: 400, description: 'Invalid input (e.g., missing parameters, invalid date format)' })
   @ApiQuery({ name: 'counselorId', required: true, type: Number, example: 1 })
-  @ApiQuery({ name: 'date', required: true, type: String, example: '2025-03-25' })
+  @ApiQuery({ name: 'date', required: true, type: String, example: '2025-06-15' })
   async getAvailableSlots(@Query() query: AvailabilityQueryDto) {
     return this.appointmentsService.getAvailableSlots(Number(query.counselorId), query.date);
   }
