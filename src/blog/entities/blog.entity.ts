@@ -10,7 +10,7 @@ export class Blog {
   @Column()
   @IsString()
   @IsNotEmpty()
-  @Length(1, 1800)
+  @Length(1, 4800)
   articleContent: string;
 
   @Column({ nullable : true })

@@ -21,7 +21,13 @@ export class SensorBasedWeeklySummaryService {
     }[],
     deviceId: string,
     req,
-  ): Promise<WeeklyFarmReport[]> {
+  ){
+    if(weeklyReports[0].risk_analysis.length===0 || weeklyReports[0].farm_health.length===0 || weeklyReports[0].yield_forecast.length===0){
+      return {
+        status: 200,
+        message: 'no report there'
+      }
+    }
     const reportEntities = weeklyReports.map((report) => {
       return this.advisoryRepository.create({
         farmHealth: report.farm_health || [],
