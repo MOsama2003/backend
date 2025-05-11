@@ -19,18 +19,10 @@ export class NotificationsService {
       const take = Math.max(1, limit);
       const skip = (currentPage - 1) * take;
 
-      const searchFilters = search
-        ? [
-            { title: ILike(`%${search}%`) },
-            { body: ILike(`%${search}%`) },
-          ]
-        : [];
-
       const [notifications, total] = await this.notificationRepository.findAndCount({
         where: [
           { 
             user: { id: req.user.id },
-            ...(searchFilters.length ? { $or: searchFilters } : {})
           }
         ],
         order: { createdAt: 'DESC' },
