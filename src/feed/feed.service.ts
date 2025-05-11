@@ -114,7 +114,7 @@ export class FeedService {
 
     await this.reactionRepository.save(newReaction);
 
-    await this.notificationService.sendNotification(
+    {+post.publisher.id !== +req.user.id && await this.notificationService.sendNotification(
       {
         title: 'New Reaction Added',
         body: `${req.user.name} reacted ${reactionType} to your post`,
@@ -122,7 +122,7 @@ export class FeedService {
       },
       +post.publisher.id,
     );
-
+}
     return { message: `${reactionType} added successfully` };
   }
 
@@ -155,24 +155,60 @@ export class FeedService {
       publishedDate: new Date().toISOString(),
     });
   
-    await this.notificationService.sendNotification(
+    {+post.publisher.id !== +req.user.id && await this.notificationService.sendNotification(
       {
         title: 'New Comment Added to Your Post',
         body: `${req.user.name} commented: ${commentText}`,
         data: { postId: String(postId) },
       },
       +post.publisher.id,
-    );
+    )}
 
     return await this.commentRepository.save(newComment);
   }
 
-  async feed(id : string){
-    return await this.feedRepository.findOne({
-      where: { id : +id },
-      relations: ['publisher']
-    })
-  }
+  async feed(id: string, req: any) {
+    const post = await this.feedRepository.findOne({
+      where: { id: +id },
+      relations: ['comment', 'reaction', 'reaction.user', 'publisher'],
+    });
+  
+    if (!post) return null;
+  
+    const { reaction = [], comment = [], publisher } = post;
+  
+    const userId = req.user?.id;
+  
+    let upvoteCount = 0;
+    let hasUpvoted = false;
+    let hasDownvoted = false;
+  
+    for (const r of reaction) {
+      if (r.status === PostReaction.Upvote) {
+        upvoteCount++;
+        if (r.user?.id === userId) hasUpvoted = true;
+      } else if (r.status === PostReaction.Devote && r.user?.id === userId) {
+        hasDownvoted = true;
+      }
+    }
+  
+    return {
+      id: post.id,
+      caption: post.caption,
+      media: post.media,
+      publishedDate: post.publishedDate,
+      upvoteCount,
+      commentCount: comment.length,
+      hasUpvoted,
+      hasDownvoted,
+      publisher: {
+        id: publisher.id,
+        name: `${publisher.firstName} ${publisher.lastName}`,
+        profilePic: publisher.avatar,
+        email: publisher.email,
+      },
+    };
+  }  
 
   async feedListing(paginationQueryDto: PaginationQueryDto, req: any) {
     const { page = 1, limit = 10, search = '' } = paginationQueryDto;

@@ -22,9 +22,9 @@ export class SensorBasedAdvisoryService {
 
     if (req?.user?.id) {
       await this.notificationService.sendNotification({
-        title: 'New Advisories added for today',
-        body: 'check Events',
-        data: advisories,
+        title: 'New Advisories added',
+        body: `New Advisories added for your device`,
+        data: {deviceId : deviceId},
       }, +req.user.id);
     }
     

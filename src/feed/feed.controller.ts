@@ -84,8 +84,8 @@ export class FeedController {
 
   @Get(':id')
   @ApiBearerAuth()
-  async feed(@Param('id') id: number){
-    return this.feedService.feed(String(id));
+  async feed(@Param('id') id: number, @Req() req: any){
+    return this.feedService.feed(String(id), req);
   }
 
   @Post('/reaction')

@@ -42,9 +42,9 @@ export class SensorDataService {
 
     await this.notificationService.sendNotification(
       {
-        title: 'New Data from farm has been added',
+        title: 'New Farm data added',
         body: 'check new data',
-        data,
+        data: {deviceId: data?.deviceId},
       },
       user.id,
     );

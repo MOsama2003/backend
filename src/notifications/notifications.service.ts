@@ -1,17 +1,86 @@
-import { Injectable } from '@nestjs/common';
-import { CreateNotificationDto } from './dto/create-notification.dto';
-import { Repository } from 'typeorm';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Repository, ILike } from 'typeorm';
 import { Notification } from './entities/notification.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { PaginationQueryDto } from './dto/pagination-query.dto';
 
 @Injectable()
 export class NotificationsService {
   constructor(
     @InjectRepository(Notification)
     private readonly notificationRepository: Repository<Notification>
-  ){}
+  ) {}
 
-  async getAllNotification(req : any){
-    return await this.notificationRepository.find({where: {user : { id : req.user.id }}})
+  async getAllNotifications(req: any, paginationQuery: PaginationQueryDto) {
+    const { page = 1, limit = 10, search = '' } = paginationQuery;
+
+    try {
+      const currentPage = Math.max(1, page);
+      const take = Math.max(1, limit);
+      const skip = (currentPage - 1) * take;
+
+      const [notifications, total] = await this.notificationRepository.findAndCount({
+        where: [
+          { 
+            user: { id: req.user.id },
+          }
+        ],
+        order: { createdAt: 'DESC' },
+        skip,
+        take,
+        select: [
+          'id',
+          'title',
+          'body',
+          'data',
+          'isRead',
+          'createdAt',
+        ]
+      });
+
+      const pageCount = Math.ceil(total / take);
+      const hasNextPage = currentPage < pageCount;
+      const hasPrevPage = currentPage > 1;
+
+      return {
+        metaData: {
+          totalCount: total,
+          pageCount,
+          page: currentPage,
+          take,
+          hasNextPage,
+          hasPrevPage,
+          itemCount: notifications.length,
+          unreadCount: await this.getUnreadCount(req)
+        },
+        data: notifications,
+      };
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      throw new InternalServerErrorException(
+        'Something went wrong while fetching notifications.',
+      );
+    }
+  }
+
+  async getUnreadCount(req: any) {
+    return await this.notificationRepository.count({
+      where: { 
+        user: { id: req.user.id },
+        isRead: false 
+      }
+    });
+  }
+
+  async markAllAsRead(req: any) {
+    await this.notificationRepository.update(
+      { 
+        user: { id: req.user.id },
+        isRead: false 
+      },
+      { isRead: true }
+    );
+    
+    return { success: true, message: 'All notifications marked as read' };
   }
 }
