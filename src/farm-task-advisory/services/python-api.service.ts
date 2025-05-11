@@ -13,7 +13,7 @@ export class PythonApiService {
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {
-    this.baseUrl = this.configService.get<string>('PYTHON_API_URL') || 'http://localhost:8000';
+    this.baseUrl =  'https://agrisense-ai-eedsdvg4aja6bhb5.southeastasia-01.azurewebsites.net';
     
     if (this.baseUrl.endsWith('/')) {
       this.baseUrl = this.baseUrl.slice(0, -1);
