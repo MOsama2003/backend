@@ -92,7 +92,6 @@ export class AuthController {
   @ApiBearerAuth()
   async logout(@Req() req) {
     const user: User = req.user;
-    console.log(req.user, 'logoutlogoutlogoutlogoutlogoutlogout')
     await this.userRepository.update(user.id, {
       refreshToken: '',
       fcmToken: '',
