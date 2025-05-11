@@ -80,7 +80,7 @@ export class ConversationService {
     await this.notificationService.sendNotification({
       title: 'New Chat Initiated',
       body: `${req.user.name} added you`,
-      data: {ChatId : String(newChat.conversationtId)}, 
+      data: {chatId : String(newChat.conversationtId)}, 
     },
     +otherUserId
   );

@@ -26,9 +26,9 @@ export class SensorBasedTaskService {
     if(req?.user?.id){
       await this.notificationService.sendNotification(
         {
-          title: 'New Tasks added for today',
-          body: 'check Tasks',
-          data: tasks,
+          title: 'New Tasks added',
+          body: 'check Tasks for today',
+          data: {deviceId: deviceId},
         },
         +req.user.id,
       );
@@ -75,17 +75,6 @@ export class SensorBasedTaskService {
           }),
           ...(task.notes && { notes: task.notes }),
         },
-      );
-    }
-
-    if(req?.user?.id){
-      await this.notificationService.sendNotification(
-        {
-          title: 'Existing tasks has been updated',
-          body: 'check Events',
-          data: updatedTasks,
-        },
-        +req.user.id,
       );
     }
   }

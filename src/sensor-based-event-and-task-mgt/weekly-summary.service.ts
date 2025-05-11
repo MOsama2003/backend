@@ -43,7 +43,7 @@ export class SensorBasedWeeklySummaryService {
         {
           title: 'Weekly report is here',
           body: 'check your report',
-          data: reportEntities,
+          data: {deviceId: deviceId},
         },
         +req.user.id,
       );
