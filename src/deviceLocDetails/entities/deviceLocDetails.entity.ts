@@ -8,26 +8,10 @@ export class DeviceLocDetails {
   @Column({ unique: true })
   deviceId: string;
 
-  @Column({
-    type: 'decimal',
-    precision: 10,  
-    scale: 7,      
-    transformer: {
-      to: (value: number) => value,
-      from: (value: string) => parseFloat(value)
-    }
-  })
+  @Column({ type: 'float' , nullable: true})
   longitude: number;
 
-  @Column({
-    type: 'decimal',
-    precision: 10,
-    scale: 7,
-    transformer: {
-      to: (value: number) => value,
-      from: (value: string) => parseFloat(value)
-    }
-  })
+  @Column({ type: 'float',  nullable: true })
   latitude: number;
 
   @Column()
