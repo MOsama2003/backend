@@ -17,8 +17,7 @@ export class NotificationsService {
     try {
       const currentPage = Math.max(1, page);
       const take = Math.max(1, limit);
-      const skip = (currentPage - 1) * take;
-
+      const skip = Number((currentPage - 1) * take);
       const [notifications, total] = await this.notificationRepository.findAndCount({
         where: [
           { 

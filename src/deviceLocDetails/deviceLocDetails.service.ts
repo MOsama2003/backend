@@ -74,7 +74,6 @@ export class DeviceLocDetailsService {
       where: { deviceId }
     });
 
-    console.log(location,'ssssssssss')
     if (!location) {
       throw new NotFoundException(`Location for device ${deviceId} not found`);
     }
