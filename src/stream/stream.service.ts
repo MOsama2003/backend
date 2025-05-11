@@ -18,7 +18,6 @@ export class StreamService {
   }
 
   async createStreamUser(user: { id: number; name: string; email: string }) {
-    console.log(user,'sssssssssssssss')
     try {
       const streamUser = await this.serverClient.upsertUser({
         id: user.id.toString(),

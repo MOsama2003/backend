@@ -83,7 +83,8 @@ export class SensorBasedEventAndTaskMgtService {
         ? latestNKP.map((entry) => JSON.parse(JSON.stringify(entry)))
         : [],
     };
-    const response = await fetch('http://4.240.104.187:8000/events', {
+
+    const response = await fetch('http://0.0.0.0:8000/events', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -98,7 +99,6 @@ export class SensorBasedEventAndTaskMgtService {
       typeof res.advisories === 'string'
         ? JSON.parse(res.advisories)
         : res.advisories;
-
     const advArray = advisories?.advisories ?? [];
     if (advArray.length === 0) {
       return {
@@ -128,7 +128,7 @@ export class SensorBasedEventAndTaskMgtService {
         ? advisories.map((entry) => JSON.parse(JSON.stringify(entry)))
         : [],
     };
-    const response = await fetch('http://4.240.104.187:8000/generate-tasks', {
+    const response = await fetch('http://0.0.0.0:8000/generate-tasks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -139,12 +139,10 @@ export class SensorBasedEventAndTaskMgtService {
     }
 
     const res = await response.json();
-    const ts =
+    const tasks =
       typeof res.tasks === 'string' ? JSON.parse(res.tasks) : res.tasks;
 
-    const tasks = ts.tasks ?? [];
-
-    // If it's empty, just return 200
+     // If it's empty, just return 200
     if (tasks.length === 0) {
       return {
         status: 200,
@@ -174,7 +172,7 @@ export class SensorBasedEventAndTaskMgtService {
         ? tasks.map((entry) => JSON.parse(JSON.stringify(entry)))
         : [],
     };
-    const response = await fetch('http://4.240.104.187:8000/updated-tasks', {
+    const response = await fetch('http://0.0.0.0:8000/updated-tasks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -185,12 +183,10 @@ export class SensorBasedEventAndTaskMgtService {
     }
 
     const res = await response.json();
-    const updatedTaskParsed =
+    const updatedTask =
       typeof res.updatedTasks === 'string'
         ? JSON.parse(res.updatedTasks)
         : res.updatedTasks;
-
-    const updatedTask = updatedTaskParsed?.tasks ?? [];
 
     if (updatedTask.length === 0) {
       return {
@@ -222,7 +218,7 @@ export class SensorBasedEventAndTaskMgtService {
         ? tasks.map((entry) => JSON.parse(JSON.stringify(entry)))
         : [],
     };
-    const response = await fetch('http://4.240.104.187:8000/generate-report', {
+    const response = await fetch('http://0.0.0.0:8000/generate-report', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
