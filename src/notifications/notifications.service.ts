@@ -36,7 +36,6 @@ export class NotificationsService {
         order: { createdAt: 'DESC' },
         skip,
         take,
-        relations: ['user'],
         select: [
           'id',
           'title',
@@ -44,7 +43,6 @@ export class NotificationsService {
           'data',
           'isRead',
           'createdAt',
-          'user'
         ]
       });
 
