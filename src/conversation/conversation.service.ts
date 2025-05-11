@@ -16,6 +16,7 @@ import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { SendMessage } from './dto/create-message.dto';
 import { DeliveryStatus } from 'src/constants';
 import { ConversationGateway } from './conversation.gateway';
+import { FirebaseService } from 'src/notifications/firebase.service';
 
 @Injectable()
 export class ConversationService {
@@ -27,6 +28,7 @@ export class ConversationService {
     private readonly userService: UserService,
     private readonly cloudinaryService: CloudinaryService,
     private readonly chatGateway: ConversationGateway,
+    private readonly notificationService: FirebaseService
   ) {}
 
   async initiateChat(data: CreateConversationDto, req: any) {
@@ -74,6 +76,14 @@ export class ConversationService {
         { id: otherUserId } as any,
       ],
     });
+
+    await this.notificationService.sendNotification({
+      title: 'New Chat Initiated',
+      body: `${req.user.name} added you`,
+      data: {ChatId : String(newChat.conversationtId)}, 
+    },
+    +otherUserId
+  );
 
     return await this.conversationRepository.save(newChat);
   }
@@ -189,6 +199,7 @@ export class ConversationService {
       conversationId,
       lastMessage: savedMessage, // Send the latest message details
     });
+    
     return savedMessage;
   }
 
