@@ -8,10 +8,10 @@ export class DeviceLocDetails {
   @Column({ unique: true })
   deviceId: string;
 
-  @Column()  
+  @Column({ type: 'float' , nullable: true})
   longitude: number;
 
-  @Column()  
+  @Column({ type: 'float',  nullable: true })
   latitude: number;
 
   @Column()
