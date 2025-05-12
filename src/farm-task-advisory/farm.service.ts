@@ -12,6 +12,7 @@ import { CreateFarmDto } from './dto/create-farm.dto';
 import { UpdateFarmDto } from './dto/update-farm.dto';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { PythonApiService } from './services/python-api.service';
+import { FirebaseService } from 'src/notifications/firebase.service';
 
 export enum TaskStatus {
   NOT_STARTED = 'Not Started',
@@ -38,6 +39,7 @@ export class FarmService {
     private readonly cloudinaryService: CloudinaryService,
     private readonly pythonApiService: PythonApiService,
     private readonly dataSource: DataSource,
+    private readonly notificationService: FirebaseService,
   ) {}
 
   async createFarm(userId: string, createFarmDto: CreateFarmDto): Promise<Farm> {
@@ -84,14 +86,26 @@ export class FarmService {
       where: { id: farmId, userId },
       relations: ['images', 'reports', 'tasks', 'advisories'],
     });
-
+  
     if (!farm) {
       throw new NotFoundException('Farm not found');
     }
-
+  
+    if (farm.tasks && farm.tasks.length > 0) {
+      const sortedTasks = farm.tasks.sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+  
+      const latestTaskDate = new Date(sortedTasks[0].createdAt);
+  
+      farm.tasks = sortedTasks.filter(task => {
+        const taskDate = new Date(task.createdAt);
+        return taskDate.getTime() === latestTaskDate.getTime();
+      });
+    }
+  
     return farm;
   }
-
   async updateFarm(userId: string, farmId: string, updateFarmDto: UpdateFarmDto): Promise<Farm> {
     const farm = await this.getFarmById(userId, farmId);
     
@@ -300,6 +314,16 @@ export class FarmService {
       });
       
       await queryRunner.commitTransaction();
+
+      
+      await this.notificationService.sendNotification(
+        {
+          title: 'New tasks for you farm are available!',
+          body: `${farm.displayId} is ready with new information`,
+          data: {farmId : String(farm.id)},
+        },
+        +farm.userId,
+      )
         
       return this.getFarmById(farm.userId, farm.id);
     } catch (error) {

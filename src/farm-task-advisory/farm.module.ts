@@ -11,6 +11,7 @@ import { FarmAdvisory } from './entities/farm-advisory.entity';
 import { PythonApiService } from './services/python-api.service';
 import { FarmImage } from './entities/farm-image.entity';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { NotificationsModule } from 'src/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
       FarmAdvisory
     ]),
     HttpModule,
+    NotificationsModule
   ],
   controllers: [FarmController],
   providers: [FarmService, PythonApiService, CloudinaryService],
