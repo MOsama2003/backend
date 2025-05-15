@@ -84,17 +84,19 @@ export class SensorBasedEventAndTaskMgtService {
         : [],
     };
 
-    const response = await fetch('http://0.0.0.0:8000/events', {
+    const response = await fetch('https://device-ai2-cke2bhfcdrf0f5hk.southeastasia-01.azurewebsites.net/events', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
+    
 
     if (!response.ok) {
       throw new Error(`Failed to send advisories: ${response.statusText}`);
     }
 
     const res = await response.json();
+    
     const advisories =
       typeof res.advisories === 'string'
         ? JSON.parse(res.advisories)
@@ -128,7 +130,7 @@ export class SensorBasedEventAndTaskMgtService {
         ? advisories.map((entry) => JSON.parse(JSON.stringify(entry)))
         : [],
     };
-    const response = await fetch('http://0.0.0.0:8000/generate-tasks', {
+    const response = await fetch('https://device-ai2-cke2bhfcdrf0f5hk.southeastasia-01.azurewebsites.net/generate-tasks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -172,7 +174,7 @@ export class SensorBasedEventAndTaskMgtService {
         ? tasks.map((entry) => JSON.parse(JSON.stringify(entry)))
         : [],
     };
-    const response = await fetch('http://0.0.0.0:8000/updated-tasks', {
+    const response = await fetch('https://device-ai2-cke2bhfcdrf0f5hk.southeastasia-01.azurewebsites.net/updated-tasks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -218,7 +220,7 @@ export class SensorBasedEventAndTaskMgtService {
         ? tasks.map((entry) => JSON.parse(JSON.stringify(entry)))
         : [],
     };
-    const response = await fetch('http://0.0.0.0:8000/generate-report', {
+    const response = await fetch('https://device-ai2-cke2bhfcdrf0f5hk.southeastasia-01.azurewebsites.net/generate-report', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
