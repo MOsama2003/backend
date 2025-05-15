@@ -21,6 +21,6 @@ export class Notification {
   @Column({ default: false })
   isRead: boolean;
 
-  @CreateDateColumn()
+  @Column()
   createdAt: Date;
 }
