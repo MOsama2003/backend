@@ -17,20 +17,22 @@ export class FirebaseService implements OnModuleInit {
     private readonly notificationRepository: Repository<Notification>,
     private readonly userService: UserService,
   ) {}
- 
-async onModuleInit() {
-  const keyPath = this.configService.get<string>('GOOGLE_APPLICATION_CREDENTIALS_PATH');
-  if (!keyPath) {
-    throw new Error('Firebase key path not configured');
+
+  async onModuleInit() {
+    const keyPath = this.configService.get<string>(
+      'GOOGLE_APPLICATION_CREDENTIALS_PATH',
+    );
+    if (!keyPath) {
+      throw new Error('Firebase key path not configured');
+    }
+
+    const absolutePath = path.resolve(keyPath);
+    const firebaseConfig = JSON.parse(fs.readFileSync(absolutePath, 'utf8'));
+
+    admin.initializeApp({
+      credential: admin.credential.cert(firebaseConfig),
+    });
   }
-
-  const absolutePath = path.resolve(keyPath);
-  const firebaseConfig = JSON.parse(fs.readFileSync(absolutePath, 'utf8'));
-
-  admin.initializeApp({
-    credential: admin.credential.cert(firebaseConfig),
-  });
-}
 
   async sendNotification(
     Notificationbody: CreateNotificationDto,
@@ -38,20 +40,38 @@ async onModuleInit() {
   ) {
     const { body, title, data } = Notificationbody;
     const user = await this.userService.findByIdForNotification(+userId);
-  
+
     // Check if user and FCM token exist
-    if (!user || !user.fcmToken || typeof user.fcmToken !== 'string' || user.fcmToken.trim().length === 0) {
+    if (
+      !user ||
+      !user.fcmToken ||
+      typeof user.fcmToken !== 'string' ||
+      user.fcmToken.trim().length === 0
+    ) {
       console.warn(`FCM token missing or invalid for user ID: ${userId}`);
       return;
     }
-  
-    console.log(user.fcmToken.trim(),'user.fcmToken.trim()')
+
     const message = {
-      notification: { title, body },
       token: user.fcmToken.trim(),
-      data: data || {},
+      android: {
+        priority: 'high' as const,
+      },
+      apns: {
+        payload: {
+          aps: {
+            contentAvailable: true,
+          },
+        },
+      },
+      data: {
+        title,
+        body,
+        ...data,
+      },
+      notification: { title, body }, // Optional: Remove this if app handles data manually
     };
-  
+
     try {
       await admin.messaging().send(message);
       console.log('✅ Notification sent successfully');
@@ -60,23 +80,26 @@ async onModuleInit() {
       // You might want to handle invalid token here (e.g., remove token if permanently invalid)
       return;
     }
-  
+
     const notification = this.notificationRepository.create({
       title,
       body,
       user,
       isRead: false,
+      createdAt: new Date(),
       data: data || {},
     });
-  
+
     await this.notificationRepository.save(notification);
   }
-  
+
   async subscribeToGlobalNotifications(fcmToken) {
     if (!fcmToken) {
       throw new BadRequestException('User does not have an FCM token.');
     }
-    await admin.messaging().subscribeToTopic([fcmToken], 'global_notifications');
+    await admin
+      .messaging()
+      .subscribeToTopic([fcmToken], 'global_notifications');
   }
 
   async sendGlobalNotification(Notificationbody: CreateNotificationDto) {
@@ -88,7 +111,7 @@ async onModuleInit() {
       data: data || {},
     };
 
-    console.log('✅global Notification sent successfully')
+    console.log('✅global Notification sent successfully');
     await admin.messaging().send(message);
   }
 

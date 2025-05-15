@@ -28,4 +28,11 @@ export class PaginationQueryDto {
   @IsOptional()
   @IsString()
   search?: string; 
+
+  @ApiPropertyOptional({
+    description: 'Search term (email, name, or deviceId)',
+  })
+  @IsOptional()
+  @IsString()
+  isUrdu?: boolean; 
 }

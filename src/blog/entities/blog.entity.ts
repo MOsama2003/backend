@@ -27,4 +27,7 @@ export class Blog {
 
   @ManyToOne(() => User, (user) => user.blog, { onDelete: "CASCADE" })
   user: User;
+
+  @Column({ default: false})
+  isUrdu: boolean;
 }

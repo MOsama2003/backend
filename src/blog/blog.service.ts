@@ -83,6 +83,7 @@ export class BlogService {
       articlePublishDate: String(new Date().toISOString()),
       user: req.user,
       articleTitle,
+      isUrdu: true
     });
 
     await this.blogRepository.save(article);
@@ -100,7 +101,7 @@ export class BlogService {
   }
 
   async findAll(paginationQuery: PaginationQueryDto) {
-    const { page = 1, limit = 10, search = '' } = paginationQuery;
+    const { page = 1, limit = 10, search = '', isUrdu } = paginationQuery;
 
     try {
       const currentPage = Math.max(1, page);
@@ -113,8 +114,18 @@ export class BlogService {
           ]
         : [];
 
+      // Add Urdu filter if isUrdu is true
+      const urduFilter = isUrdu 
+        ? { isUrdu: true } 
+        : {};
+
+      const whereConditions = [
+        ...(searchFilters.length ? searchFilters : []),
+        ...(isUrdu ? [urduFilter] : [])
+      ];
+
       const [article, total] = await this.blogRepository.findAndCount({
-        where: searchFilters.length ? searchFilters : undefined,
+        where: whereConditions.length ? whereConditions : undefined,
         skip,
         take,
         relations: ['user'],
@@ -125,6 +136,7 @@ export class BlogService {
           'articleImage',
           'user',
           'articlePublishDate',
+          'isUrdu' // Include isUrdu in select
         ],
       });
 
@@ -145,9 +157,9 @@ export class BlogService {
         data: article,
       };
     } catch (error) {
-      console.error('Error fetching Requested Counsellar:', error);
+      console.error('Error fetching articles:', error);
       throw new InternalServerErrorException(
-        'Something went wrong while fetching Requested Counsellar.',
+        'Something went wrong while fetching articles.',
       );
     }
   }

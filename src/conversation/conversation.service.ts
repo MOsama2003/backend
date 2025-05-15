@@ -28,7 +28,7 @@ export class ConversationService {
     private readonly userService: UserService,
     private readonly cloudinaryService: CloudinaryService,
     private readonly chatGateway: ConversationGateway,
-    private readonly notificationService: FirebaseService
+    private readonly notificationService: FirebaseService,
   ) {}
 
   async initiateChat(data: CreateConversationDto, req: any) {
@@ -77,21 +77,22 @@ export class ConversationService {
       ],
     });
 
-    await this.notificationService.sendNotification({
-      title: 'New Chat Initiated',
-      body: `${req.user.name} added you`,
-      data: {chatId : String(newChat.conversationtId)}, 
-    },
-    +otherUserId
-  );
+    await this.notificationService.sendNotification(
+      {
+        title: 'New Chat Initiated',
+        body: `${req.user.name} added you`,
+        data: { chatId: String(newChat.conversationtId) },
+      },
+      +otherUserId,
+    );
 
     return await this.conversationRepository.save(newChat);
   }
-
   async chatListing(req: any, data: PaginationQueryDto) {
     const { limit = 10, page = 1 } = data;
     const userId = req.user.id;
 
+    // First, get all conversation IDs where the user is a participant
     const qb = this.conversationRepository
       .createQueryBuilder('conversation')
       .innerJoin(
@@ -106,30 +107,37 @@ export class ConversationService {
       )
       .leftJoinAndSelect('conversation.messages', 'messages')
       .leftJoinAndSelect('messages.sender', 'sender')
-      .orderBy('messages.createdAt', 'DESC')
+      .orderBy('conversation.createdAt', 'DESC') // Order by conversation's creation time
       .skip((page - 1) * limit)
       .take(limit);
 
     const [conversations, total] = await qb.getManyAndCount();
 
     const chatList = conversations.map((conversation) => {
+      // Find the other user in the conversation
       const otherUser = conversation.conversationParticipants.find(
         (user) => user.id !== userId,
       );
 
+      // Get the last message, sorted by creation time
       const lastMessage =
-        conversation.messages?.sort(
-          (m1, m2) => m2.createdAt.getTime() - m1.createdAt.getTime(),
-        )[0] || null;
+        conversation.messages && conversation.messages.length > 0
+          ? conversation.messages.sort(
+              (m1, m2) => m2.createdAt.getTime() - m1.createdAt.getTime(),
+            )[0]
+          : null;
 
-      const unreadCount =
-        conversation.messages?.filter(
-          (msg) =>
-            msg.status === DeliveryStatus.DELIVER && msg.sender.id !== userId,
-        ).length || 0;
+      // Count unread messages (ones delivered but not from the current user)
+      const unreadCount = conversation.messages
+        ? conversation.messages.filter(
+            (msg) =>
+              msg.status === DeliveryStatus.DELIVER &&
+              msg.sender?.id !== userId,
+          ).length
+        : 0;
 
       return {
-        conversationId: conversation.conversationtId, // fixed typo
+        conversationId: conversation.conversationtId, // Using the actual property name from the entity
         userId: otherUser?.id || null,
         userName: otherUser
           ? `${otherUser.firstName} ${otherUser.lastName}`
@@ -199,7 +207,7 @@ export class ConversationService {
       conversationId,
       lastMessage: savedMessage, // Send the latest message details
     });
-    
+
     return savedMessage;
   }
 
