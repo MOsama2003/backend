@@ -1,0 +1,35 @@
+import { User } from '../../user/entities/user.entity';
+import { FarmImage } from './farm-image.entity';
+import { FarmImageReport } from './farm-image-report.entity';
+import { FarmTask } from './farm-task.entity';
+import { FarmAdvisory } from './farm-advisory.entity';
+import { SoilType, WaterSource, GrowthStage, IrrigationType, WaterAvailability, FertilizerType } from 'src/constants';
+export declare class Farm {
+    id: string;
+    displayId: string;
+    name: string;
+    farmLocation: string;
+    totalLandArea: number;
+    crop: string;
+    latitude?: number;
+    longitude?: number;
+    soilType: SoilType;
+    waterSource: WaterSource;
+    sowingDate: Date;
+    currentGrowthStage: GrowthStage;
+    pastPestIssues: boolean;
+    irrigationType: IrrigationType;
+    waterAvailabilityStatus: WaterAvailability;
+    fertilizersUsed: FertilizerType[];
+    additionalDetails: Record<string, any>;
+    onboardingCompleted: boolean;
+    lastUpdateDate: Date;
+    user: User;
+    userId: string;
+    images: FarmImage[];
+    reports: FarmImageReport[];
+    tasks: FarmTask[];
+    advisories: FarmAdvisory[];
+    createdAt: Date;
+    updatedAt: Date;
+}

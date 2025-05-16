@@ -1,0 +1,30 @@
+import { Blog } from 'src/blog/entities/blog.entity';
+import { Message } from 'src/consult-ai-chat/entities/message.entity';
+import { Farm } from 'src/farm-task-advisory/entities/farm.entity';
+import { Comment } from 'src/feed/entities/comment.entity';
+import { Feed } from 'src/feed/entities/feed.entity';
+import { Reaction } from 'src/feed/entities/reaction.entity';
+import { Notification } from 'src/notifications/entities/notification.entity';
+import { RequestedCounsellar } from 'src/requested-counsellar/entities/requested-counsellar.entity';
+export declare class User {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+    avatar: string;
+    refreshToken: string;
+    password: string;
+    role: string;
+    deviceId: string;
+    createdAt: string;
+    disabled: boolean;
+    fcmToken: string;
+    blog: Blog[];
+    feed: Feed[];
+    reactions: Reaction[];
+    comment: Comment;
+    notifications: Notification[];
+    messages: Message[];
+    counsellorProfile: RequestedCounsellar;
+    farms: Farm[];
+}

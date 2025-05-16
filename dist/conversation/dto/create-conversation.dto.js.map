@@ -1,0 +1,1 @@
+{"version":3,"file":"create-conversation.dto.js","sourceRoot":"","sources":["../../../src/conversation/dto/create-conversation.dto.ts"],"names":[],"mappings":";;;;;;;;;;;;AAAA,6CAA8C;AAE9C,MAAa,qBAAqB;CAMjC;AAND,sDAMC;AADC;IAJC,IAAA,qBAAW,EAAC;QACX,WAAW,EAAE,qDAAqD;QAClE,OAAO,EAAE,CAAC,CAAC,EAAE,CAAC,CAAC;KAChB,CAAC;;sDACgB"}
