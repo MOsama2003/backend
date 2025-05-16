@@ -69,7 +69,6 @@ export class AuthController {
 
     user.refreshToken = refreshToken;
     if (fcmToken) {
-      console.log(fcmToken,'osama')
       await this.userRepository.save({ ...user, fcmToken });
       await this.notificationService.subscribeToGlobalNotifications(fcmToken);
     } else {
